@@ -10,7 +10,7 @@ LDFLAGS= -L/usr/local/lib -lpthread $(OPTFLAGS)
 FTPSERVER=ftpserver/server
 ENVIRONMENT=/tmp/cam-00.pipe
 SHELL=/bin/bash
-TARGET=nnipcamera
+TARGET=aiintruder
 
 #opencv
 CXXFLAGS+=`pkg-config opencv --cflags`
