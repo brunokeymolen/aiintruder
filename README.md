@@ -1,17 +1,16 @@
-Apply Neural Network Techology to outdoor Security camera video streams.
+Artificial Intelligence backed Intruder detection for home security cameras.
 
 
 The goal of this project is 100% accuracy, never miss an intruder but avoid false positives in challenging environments. 
 
 Tested with Foscam FI9853EP outdoor IP camera's.
 
-- leverages camera build in movement detection algorithm to trigger the NN, this reduces power consumption
-- every suspicious movement is analyzed by a Neural Network which filters the false positives and only triggers
-  when the objects of interest are actually seen (like a person, cat)
+- leverages camera build in movement detection algorithm to trigger the Neural Network analysis, this to reduce power consumption.
+- every suspicious movement is analyzed by a Neural Network which filters the false positives and only triggers when the objects of interest are actually seen (like a person, cat)
 
 
 BUILD
-- install opencv3 first
+- first, install opencv3
 
 
 make dependencies<br>
