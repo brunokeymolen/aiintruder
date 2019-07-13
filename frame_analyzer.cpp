@@ -80,6 +80,10 @@ namespace keymolen
             if (hit)
             {
                 std::cout << "*** PERSON ****" << std::endl;
+                std::ostringstream os;
+                os << "/mnt/videosecurity/ftp/camera2/person-detected/alarm-" << time(0) << ".jpg";
+                std::string fname = os.str();
+                cv::imwrite(fname.c_str(), boxresult);
             }
 
             //remove from the pipe, make place for new
@@ -180,11 +184,12 @@ namespace keymolen
         for (size_t i = 0; i < indices.size(); ++i)
         {
             int idx = indices[i];
-            cv::Rect box = boxes[idx];
-            drawPred(classIds[idx], confidences[idx], box.x, box.y,
-                    box.x + box.width, box.y + box.height, frame);
             if (classes_[classIds[idx]] == "person")
             {
+                cv::Rect box = boxes[idx];
+                drawPred(classIds[idx], confidences[idx], box.x, box.y,
+                    box.x + box.width, box.y + box.height, frame);
+            
                 hit = true;
             }
         }
