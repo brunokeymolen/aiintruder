@@ -1,4 +1,4 @@
-== AIIntruder ==
+## AI Intruder
 
 Artificial Intelligence backed Intruder detection for home security cameras.
 
