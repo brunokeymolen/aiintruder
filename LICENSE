@@ -6,6 +6,8 @@ copyright: Xu Wang
 https://github.com/xu-wang11/FtpServer
 
 Yolo detection with OpenCV
-Inspiration, techniques and used code fragments: Satya Mallick
+copyright: Satya Mallick
+Techniques and code fragments from: 
 https://www.learnopencv.com/deep-learning-based-object-detection-using-yolov3-with-opencv-python-c/
+please check the file : LICENSE.objectdetection.yolo 
 

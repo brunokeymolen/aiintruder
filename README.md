@@ -1,7 +1,7 @@
 Apply Neural Network Techology to outdoor Security camera video streams.
 
 
-The goal of this project is to never miss an intruder but avoid false positives in challenging environments. 
+The goal of this project is 100% accuracy, never miss an intruder but avoid false positives in challenging environments. 
 
 Tested with Foscam FI9853EP outdoor IP camera's.
 

@@ -41,7 +41,7 @@ $(FTPSERVER):
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(ENVIRONMENT):
-	mkfifo /tmp/cam-0{0,1,1,2,3,4}.pipe
+	mkfifo /tmp/cam-0{0,1,2,3,4}.pipe
 
 dependencies:
 	wget https://pjreddie.com/media/files/yolov3.weights
