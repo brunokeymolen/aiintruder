@@ -3,7 +3,7 @@
 Artificial Intelligence backed Intruder detection for home security cameras.
 
 
-The goal of this project is 100% accuracy, never miss an intruder but avoid false positives in challenging environments or circumstances. 
+The goal of this project is 100% accuracy, never miss an intruder but avoid false positives in challenging environments and circumstances. 
 
 Tested with Foscam FI9853EP outdoor IP camera's.
 
