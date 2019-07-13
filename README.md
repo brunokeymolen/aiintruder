@@ -14,19 +14,19 @@ BUILD
 - install opencv3 first
 
 
-make dependencies
+make dependencies<br>
 make
 
-shell 1:
-mkdir /tmp/ftp
-sudo ./ftpserver/server 21 /tmp/ftp
+shell 1:<br>
+mkdir /tmp/ftp<br>
+sudo ./ftpserver/server 21 /tmp/ftp<br>
 
-shell 2:
-./nnipcamera -v /tmp/cam-00.pipe
+shell 2:<br>
+./nnipcamera -v /tmp/cam-00.pipe<br>
 
 
 
-LICENSE
-Please check the accompanied LICENSE file.
+LICENSE<br>
+Please check the accompanied LICENSE file.<br><br>
 
 2019-07-13 (C)Bruno Keymolen (bruno.keymolen@gmail.com)
