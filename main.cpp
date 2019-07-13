@@ -27,6 +27,7 @@
 //extern FILE *stderr;
 
 std::string video_path;
+int w = 0;
 
 const char* CW_IMG_ORIGINAL 	= "Original";
 const char* CW_DETECTION  	  = "Detection";
@@ -39,19 +40,22 @@ void usage(char * s)
 {
 
 	fprintf( stderr, "\n");
-    	fprintf( stderr, "%s -v <video file>  \nbuild: %s-%s \n", s, __DATE__, __TIME__);
+    	fprintf( stderr, "%s -v <video file>  -w <pause between frames in ms> \nbuild: %s-%s \n", s, __DATE__, __TIME__);
 	fprintf( stderr, "\n");
 }
 
 int main(int argc, char** argv) {
 
 	int c;
-	while ( ((c = getopt( argc, argv, "v:?" ) ) ) != -1 )
+	while ( ((c = getopt( argc, argv, "w:v:?" ) ) ) != -1 )
 	{
 	    switch (c)
 	    {
 	    case 'v':
 	    	video_path = optarg;
+	    	break;
+        case 'w':
+	    	w = atoi(optarg);
 	    	break;
 	    case '?':
         default:
@@ -88,6 +92,10 @@ void analyze(std::string video_path)
     keymolen::FrameAnalyzer frame_analyzer(detector_pipe, result_pipe);
     frame_analyzer.start();
 
+    uint64_t pushed = 0;
+    uint64_t dropped = 0;
+
+
     while (true)
     {
 
@@ -113,27 +121,34 @@ void analyze(std::string video_path)
           
             if (!result_pipe.is_empty())
             {
+                std::cout << "result..." << std::endl;
+
                 analyzed_frame = result_pipe.pull();
                 imshow(CW_DETECTION, analyzed_frame);
             }
 
             if(detector_pipe.push(frame))
             {
-                std::cout << "push ok" << std::endl;
+                pushed++;
             }
             else
             {
-                std::cout << "push drop" << std::endl;
+                dropped++;
             }
 
-            if (cv::waitKey(10) == 27)
+            if (w)
             {
-                break;
+                if (cv::waitKey(w) == 27)
+                {
+                    break;
+                }
             }
         }
         
-        frame_analyzer.stop();
     }
+       
+    std::cout << "ending..." << std::endl;
+    frame_analyzer.stop();
 
 }
 

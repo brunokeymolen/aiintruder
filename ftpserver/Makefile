@@ -22,10 +22,10 @@ ftpserver-static-lib: $(FTP_SRC)
 	ar rcs $(FTP_STATIC_LIB) $(FTP_SRC)
 
 %.o: %.c %.h 
-	$(CC) $(FTP_CFLAGS) -c -o $@ $<
+	$(CC) $(CPP_FLAGS) $(FTP_CFLAGS) -c -o $@ $<
 
 %.o: %.c
-	$(CC) $(FTP_CFLAGS) -c -o $@ $<
+	$(CC) $(CPP_FLAGS) $(FTP_CFLAGS) -c -o $@ $<
 
 clean: ftpserver-clean
 

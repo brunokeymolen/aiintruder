@@ -7,25 +7,17 @@
 #include <arpa/inet.h>
 #include "_file.h"
 
+#include "../common/async_pipe.hpp"
+
 #define PIPE_CNT 5
 #define BLOCKSIZE 4096
 #define PIPE_QUEUE_SIZE 10
-
-struct s_pipe_queue
-{
-    struct 
-    {
-        char data[BLOCKSIZE];
-        int len;
-    } elements[PIPE_QUEUE_SIZE];
-    int pos;
-};
 
 struct s_pipe_info
 {
     const char* path;
     int fd;
-    struct s_pipe_queue* queue;
+    keymolen::AsyncPipe<char*>* pipe;
 };
 
 struct s_pipe_info pipe_info[PIPE_CNT] = { 
