@@ -28,6 +28,7 @@
 
 std::string video_path;
 int w = 0;
+bool  nogui = false;
 
 const char* CW_IMG_ORIGINAL 	= "Original";
 const char* CW_DETECTION  	  = "Detection";
@@ -40,45 +41,51 @@ void usage(char * s)
 {
 
 	fprintf( stderr, "\n");
-    	fprintf( stderr, "%s -v <video file>  -w <pause between frames in ms> \nbuild: %s-%s \n", s, __DATE__, __TIME__);
+    	fprintf( stderr, "%s -v <video file>  -w <pause between frames in ms> [-x](nogui)\nbuild: %s-%s \n", s, __DATE__, __TIME__);
 	fprintf( stderr, "\n");
 }
 
 int main(int argc, char** argv) {
 
-	int c;
-	while ( ((c = getopt( argc, argv, "w:v:?" ) ) ) != -1 )
-	{
-	    switch (c)
-	    {
-	    case 'v':
-	    	video_path = optarg;
-	    	break;
-        case 'w':
-	    	w = atoi(optarg);
-	    	break;
-	    case '?':
-        default:
-			usage(argv[0]);
-			return -1;
-	    }
-	}
+    int c;
+    while ( ((c = getopt( argc, argv, "xw:v:?" ) ) ) != -1 )
+    {
+        switch (c)
+        {
+            case 'x':
+                nogui = true;
+                break;
+            case 'v':
+               video_path = optarg;
+                break;
+            case 'w':
+                w = atoi(optarg);
+            break;
+                case '?':
+            default:
+                usage(argv[0]);
+                return -1;
+        }
+    }
 
-	if(video_path.empty())
-	{
-		usage(argv[0]);
-		return -1;
-	}
+    if(video_path.empty())
+    {
+        usage(argv[0]);
+        return -1;
+    }
 
-  cv::namedWindow(CW_IMG_ORIGINAL, cv::WINDOW_AUTOSIZE);
-  cv::namedWindow(CW_DETECTION, 	 cv::WINDOW_AUTOSIZE);
+    if (!nogui)
+    {
+        cv::namedWindow(CW_IMG_ORIGINAL, cv::WINDOW_AUTOSIZE);
+        cv::namedWindow(CW_DETECTION, 	 cv::WINDOW_AUTOSIZE);
 
-  cv::moveWindow(CW_IMG_ORIGINAL, 10, 10);
-  cv::moveWindow(CW_DETECTION, 680, 10);
+        cv::moveWindow(CW_IMG_ORIGINAL, 10, 10);
+        cv::moveWindow(CW_DETECTION, 680, 10);
+    }
 
-  analyze(video_path);
+    analyze(video_path);
 
-	return 0;
+    return 0;
 }
 
 
@@ -104,7 +111,8 @@ void analyze(std::string video_path)
         if (!reader.isOpened())
         {
             std::cout << "could not open: " << video_path << std::endl;
-            return;
+            sleep(1);
+            continue;
         }
 
         std::cout << "opened : " << video_path << std::endl; 
@@ -117,14 +125,24 @@ void analyze(std::string video_path)
                 std::cout << "eof..." << std::endl;
                 break;
             }
-            imshow(CW_IMG_ORIGINAL, frame);
-          
+            if (!nogui)
+            {
+                imshow(CW_IMG_ORIGINAL, frame);
+            }
+
             if (!result_pipe.is_empty())
             {
                 std::cout << "result..." << std::endl;
 
                 analyzed_frame = result_pipe.pull();
-                imshow(CW_DETECTION, analyzed_frame);
+                
+                //cv::imwrite("some.jpg", cvmat);
+
+                if (!nogui)
+                {
+                    imshow(CW_DETECTION, analyzed_frame);
+                }
+
             }
 
             if(detector_pipe.push(frame))

@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include "_file.h"
 
+#include <iostream>
 #include "../common/async_pipe.hpp"
 
 #define PIPE_CNT 5
@@ -378,14 +379,16 @@ void handle_PWD(struct FtpClient* client) {
 }
 //
 void handle_CWD(struct FtpClient* client, char* _dir) {
+    std::cout << "handle_CWD (start) _dir: " << _dir << " client->_root: " << client->_root << " client->_cur_path: " << client->_cur_path << std::endl;
 	int flag = 0;
 	if (_dir[0] != '/') {
-		flag = 1;
+		flag = 1; //relative path
 	}
 	char dir[300];
-	my_strcpy(dir, client->_root);
+	my_strcpy(dir, client->_root); //dir : /tmp/ftp
 	if (flag) {
-		strcat(dir, "/");
+        strcat(dir, client->_cur_path); //dir : /tmp/ftp/camera2
+		strcat(dir, "/"); //dir : /tmp/ftp
 	}
 	show_log("cwd:start");
 	show_log(_dir);
@@ -394,9 +397,10 @@ void handle_CWD(struct FtpClient* client, char* _dir) {
 	my_strcat(dir, _dir);
 	show_log(dir);
 	if (is_exist_dir(dir)) {
+        std::cout << "dir exist: " << dir << " flag: " << flag << " client->_cur_path: " << client->_cur_path << std::endl;
 		show_log(dir);
 		if (flag) {
-			my_strcpy(client->_cur_path, "/");
+			my_strcat(client->_cur_path, "/");
 			my_strcat(client->_cur_path, _dir);
 		} else {
 			memset(client->_cur_path, 0, 100);
@@ -407,6 +411,7 @@ void handle_CWD(struct FtpClient* client, char* _dir) {
 	} else {
 		send_msg(client->_client_socket, "550 No such file or directory.\r\n");
 	}
+    std::cout << "handle_CWD (end) _dir: " << _dir << " client->_root: " << client->_root << " client->_cur_path: " << client->_cur_path << " dir: " << dir << std::endl;
 }
 //
 void handle_PORT(struct FtpClient* client, char* str) {
@@ -620,7 +625,8 @@ void close_alarm_pipe(int alarm_pipe)
 
 //
 void handle_STOR(struct FtpClient* client, char* path) {
-	//establish_tcp_connection(client);
+    
+    //establish_tcp_connection(client);
 	FILE* file = NULL;
 	char _path[400];
 	strcpy(_path, client->_root);
@@ -631,6 +637,7 @@ void handle_STOR(struct FtpClient* client, char* path) {
 	strcat(_path, path);
 
 
+    std::cout << "handle_STOR path: " << path << " client->_root: " << client->_root << " client->_cur_path: " << client->_cur_path << " _path: " << _path << std::endl;
   printf("fopen: %s\n", _path);
 
 	file = fopen(_path, "wb");
