@@ -1,0 +1,36 @@
+FTP_STATIC_LIB=ftpserver.a
+FTP_CFLAGS=-Wall -g3 -ggdb -O0
+FTP_LDFLAGS=-lpthread
+
+FTP_SRC =	ftpserver.o \
+					_string.o
+
+FTP_SRC_MAIN = main.o
+
+FTP_SRC_ALL = $(FTP_SRC) $(FTP_SRC_MAIN)
+
+all: ftpserver-static-lib
+
+ftpserver-main: $(FTP_SRC_ALL)
+	gcc $(FTP_SRC_ALL) $(FTP_LDFLAGS) -o server
+
+
+ftpserver-static-lib: $(FTP_SRC)
+	gcc -c $(FTP_SRC) $(FTP_LDFLAGS)
+	ar rcs $(FTP_STATIC_LIB) $(FTP_SRC)
+
+
+%.o: %.c
+	gcc $(FTP_CFLAGS) -c -o $@ $<
+
+
+ftpserver-clean: ftpserver-clean-server ftpserver-clean-o ftpserver-clean-a
+
+ftpserver-clean-server:
+	rm  server 
+
+ftpserver-clean-o: 
+	rm *.o
+
+ftpserver-clean-a: $(FTP_STATIC_LIB)
+	rm *.a
