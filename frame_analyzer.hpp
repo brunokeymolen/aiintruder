@@ -11,6 +11,8 @@
 #define KEYMOLEN_FRAME_ANALYZER_HPP
 
 #include <thread>
+#include <vector>
+
 #include "common.hpp"
 #include "common/async_pipe.hpp"
 
@@ -32,16 +34,25 @@ namespace keymolen
         void start();
         void stop();
     private:
+        const float confThreshold = 0.5; // Confidence threshold
+        const float nmsThreshold = 0.4;  // Non-maximum suppression threshold
+        const int inpWidth = 416;  // Width of network's input image
+        const int inpHeight = 416; // Height of network's input image
+    private:
         AsyncPipe<cv::Mat>& frame_pipe_;
         AsyncPipe<cv::Mat>& result_pipe_;
         std::thread thread_;
         bool run_;
         std::vector<std::string> classes_;
         cv::dnn::Net net_;
+        std::vector<cv::String> outlayer_names_;
     private:
         void thread_loop();
         void yolo(cv::Mat& frame, cv::Mat& result);
         void load_nn();
+        void get_output_names();
+        void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs);
+        void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
      };
 
 }
