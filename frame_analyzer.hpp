@@ -48,10 +48,10 @@ namespace keymolen
         std::vector<cv::String> outlayer_names_;
     private:
         void thread_loop();
-        void yolo(cv::Mat& frame, cv::Mat& result);
+        void yolo(cv::Mat& frame, cv::Mat& result, bool& hit);
         void load_nn();
         void get_output_names();
-        void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs);
+        void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, bool& hit);
         void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
      };
 

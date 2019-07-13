@@ -64,17 +64,23 @@ namespace keymolen
 
     void FrameAnalyzer::thread_loop()
     {
+        bool hit = false;
         while(run_)
         {
             cv::Mat frame = frame_pipe_.peek(true).clone(); 
             cv::Mat result_frame;
 
             std::cout << "process frame" << std::endl;
-
-            yolo(frame, result_frame);
+            
+            yolo(frame, result_frame, hit);
 
             cv::Mat boxresult = result_frame.clone();
             result_pipe_.push(boxresult);
+
+            if (hit)
+            {
+                std::cout << "*** PERSON ****" << std::endl;
+            }
 
             //remove from the pipe, make place for new
             frame_pipe_.pull(false); 
@@ -82,7 +88,7 @@ namespace keymolen
     }
 
 
-    void FrameAnalyzer::yolo(cv::Mat& frame, cv::Mat& result)
+    void FrameAnalyzer::yolo(cv::Mat& frame, cv::Mat& result, bool& hit)
     {
         cv::Mat blob;
 
@@ -97,7 +103,7 @@ namespace keymolen
         std::vector<cv::Mat> outs;
         net_.forward(outs, outlayer_names_);
 
-        postprocess(frame, outs);
+        postprocess(frame, outs, hit);
         
         frame.convertTo(result, CV_8U);
 
@@ -130,8 +136,10 @@ namespace keymolen
     }
 
     // Remove the bounding boxes with low confidence using non-maxima suppression
-    void FrameAnalyzer::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs)
+    void FrameAnalyzer::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, bool& hit)
     {
+        hit = false;
+
         std::vector<int> classIds;
         std::vector<float> confidences;
         std::vector<cv::Rect> boxes;
@@ -175,6 +183,10 @@ namespace keymolen
             cv::Rect box = boxes[idx];
             drawPred(classIds[idx], confidences[idx], box.x, box.y,
                     box.x + box.width, box.y + box.height, frame);
+            if (classes_[classIds[idx]] == "person")
+            {
+                hit = true;
+            }
         }
     }
 

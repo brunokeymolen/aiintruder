@@ -22,11 +22,11 @@ struct FtpClient
 {
 	int 		_client_socket;
 	int  		_data_socket;
-	char 		_cur_path[100];
+	char 		_cur_path[200];
 	char 		_dataip[20];
 	int 		_dataport;
 	int 		_type;
-	char		_root[100];
+	char		_root[300];
 	char		_ip[20];
 	char 		_name[20];
 	char 		_pass[20];
