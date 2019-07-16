@@ -46,10 +46,13 @@ namespace keymolen
         std::vector<std::string> classes_;
         cv::dnn::Net net_;
         std::vector<cv::String> outlayer_names_;
+        std::vector<std::string> intruder_classes_;
+        std::string intruder_img_path_;
     private:
         void thread_loop();
         void yolo(cv::Mat& frame, cv::Mat& result, bool& hit);
         void load_nn();
+        void load_intruder_classes();
         void get_output_names();
         void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, bool& hit);
         void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);

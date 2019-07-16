@@ -83,7 +83,10 @@ int main(int argc, char** argv) {
         cv::moveWindow(CW_DETECTION, 680, 10);
     }
 
+    //start the analyzer threads
     analyze(video_path);
+
+    //result thread
 
     return 0;
 }
