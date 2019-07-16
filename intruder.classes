@@ -1,0 +1,17 @@
+# list all classes that triggers an intruder alarm
+# see file coco.names for a full list
+#
+# rudementary parser; 
+# dont put empty lines, spaces after class names or other odd stuff in here
+#
+person
+cat
+horse
+dog
+bird
+cow
+sheep
+elephane
+bear
+zebra
+giraffe

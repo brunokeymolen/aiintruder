@@ -18,7 +18,8 @@ namespace keymolen
     FrameAnalyzer::FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out) :
         frame_pipe_(pipe_in), result_pipe_(pipe_out), run_(false)
     {
-
+        load_intruder_classes();
+        intruder_img_path_ = "/mnt/videosecurity/ftp/camera2/intruder-detection/";
     }
 
     FrameAnalyzer::~FrameAnalyzer()
@@ -39,6 +40,22 @@ namespace keymolen
     }
 
     
+    void FrameAnalyzer::load_intruder_classes()
+    {
+        std::string classesFile = "intruder.classes";
+        std::ifstream ifs(classesFile.c_str());
+        std::string line;
+        while (std::getline(ifs, line))
+        {
+            if (line[0] != '#')
+            {
+                intruder_classes_.push_back(line);
+            }
+        }
+ 
+    }
+
+
     void FrameAnalyzer::load_nn()
     {
         // Load names of classes
@@ -79,13 +96,15 @@ namespace keymolen
 
             if (hit)
             {
-                std::cout << "*** PERSON ****" << std::endl;
                 std::ostringstream os;
-                os << "/mnt/videosecurity/ftp/camera2/person-detected/alarm-" << time(0) << ".jpg";
+                os << intruder_img_path_;
+                os << "alarm-" << time(0) << ".jpg";
                 std::string fname = os.str();
                 cv::imwrite(fname.c_str(), boxresult);
             }
 
+            //rudimentary power management
+            sleep(1);
             //remove from the pipe, make place for new
             frame_pipe_.pull(false); 
         }
@@ -183,13 +202,21 @@ namespace keymolen
         cv::dnn::NMSBoxes(boxes, confidences, confThreshold, nmsThreshold, indices);
         for (size_t i = 0; i < indices.size(); ++i)
         {
+            bool intruder = false;
             int idx = indices[i];
-            if (classes_[classIds[idx]] == "person")
+            for (auto in : intruder_classes_)
+            {
+                if (classes_[classIds[idx]] == in)
+                {
+                    intruder = true;
+                    break;
+                }
+            }
+            if (intruder)
             {
                 cv::Rect box = boxes[idx];
                 drawPred(classIds[idx], confidences[idx], box.x, box.y,
                     box.x + box.width, box.y + box.height, frame);
-            
                 hit = true;
             }
         }
