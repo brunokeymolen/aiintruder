@@ -15,11 +15,22 @@
 namespace keymolen
 {
 
-    FrameAnalyzer::FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out) :
-        frame_pipe_(pipe_in), result_pipe_(pipe_out), run_(false)
+    FrameAnalyzer::FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out, bool tiny, int id) :
+        frame_pipe_(pipe_in), result_pipe_(pipe_out), run_(false), tiny_(tiny), id_(id)
     {
         load_intruder_classes();
         intruder_img_path_ = "/mnt/videosecurity/ftp/camera2/intruder-detection/";
+
+        if (tiny_)
+        {
+          model_configuration_ = "yolov3-tiny.cfg";
+          model_weights_ = "yolov3-tiny.weights";
+        }
+        else
+        {
+          model_configuration_ = "yolov3.cfg";
+          model_weights_ = "yolov3.weights";
+        }
     }
 
     FrameAnalyzer::~FrameAnalyzer()
@@ -67,12 +78,8 @@ namespace keymolen
             classes_.push_back(line);
         }
         
-        // Give the configuration and weight files for the model
-        cv::String modelConfiguration = "yolov3.cfg";
-        cv::String modelWeights = "yolov3.weights";
-
         // Load the network
-        net_ = cv::dnn::readNetFromDarknet(modelConfiguration, modelWeights);
+        net_ = cv::dnn::readNetFromDarknet(model_configuration_, model_weights_);
         net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
         net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
      
@@ -98,7 +105,7 @@ namespace keymolen
             {
                 std::ostringstream os;
                 os << intruder_img_path_;
-                os << "alarm-" << time(0) << ".jpg";
+                os << "alarm." << id_ << "-" << time(0) << ".jpg";
                 std::string fname = os.str();
                 cv::imwrite(fname.c_str(), boxresult);
             }

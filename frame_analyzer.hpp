@@ -28,7 +28,7 @@ namespace keymolen
     class FrameAnalyzer
     {
     public:
-        FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out);
+        FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out, bool tiny, int id);
         virtual ~FrameAnalyzer();
     public:
         void start();
@@ -48,6 +48,10 @@ namespace keymolen
         std::vector<cv::String> outlayer_names_;
         std::vector<std::string> intruder_classes_;
         std::string intruder_img_path_;
+        bool tiny_;
+        cv::String model_configuration_;
+        cv::String model_weights_;
+        int id_;
     private:
         void thread_loop();
         void yolo(cv::Mat& frame, cv::Mat& result, bool& hit);
