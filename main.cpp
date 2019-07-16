@@ -13,6 +13,9 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <thread>
+#include <vector>
+
 
 #include <opencv2/highgui/highgui_c.h>
 #include "opencv2/highgui/highgui.hpp"
@@ -26,40 +29,65 @@
 //extern FILE *stdout;
 //extern FILE *stderr;
 
-std::string video_path;
-int w = 0;
-bool  nogui = false;
+
+struct Options
+{
+  std::string video_path;
+  int w = 0;
+  bool  nogui = false;
+  bool tiny = false;
+} options;
+
+
+
+#define PIPE_CNT 5
+struct s_pipe_info
+{
+    const char* path;
+    int fd;
+};
+struct s_pipe_info pipe_info[PIPE_CNT] = { 
+                                { "/tmp/cam-00.pipe", 0},
+                                { "/tmp/cam-01.pipe", 0},
+                                { "/tmp/cam-02.pipe", 0},
+                                { "/tmp/cam-03.pipe", 0},
+                                { "/tmp/cam-04.pipe", 0}
+                              };
+
 
 const char* CW_IMG_ORIGINAL 	= "Original";
 const char* CW_DETECTION  	  = "Detection";
 
 
-void analyze(std::string video_path);
+void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* result_pipe, int id);
 
 
 void usage(char * s)
 {
 
 	fprintf( stderr, "\n");
-    	fprintf( stderr, "%s -v <video file>  -w <pause between frames in ms> [-x](nogui)\nbuild: %s-%s \n", s, __DATE__, __TIME__);
+    	fprintf( stderr, "%s -v <video file>  -w <pause between frames in ms> [-x](nogui) [-t](tiny) \nbuild: %s-%s \n", s, __DATE__, __TIME__);
 	fprintf( stderr, "\n");
 }
 
 int main(int argc, char** argv) {
 
     int c;
-    while ( ((c = getopt( argc, argv, "xw:v:?" ) ) ) != -1 )
+    while ( ((c = getopt( argc, argv, "txw:v:?" ) ) ) != -1 )
     {
         switch (c)
         {
-            case 'x':
-                nogui = true;
+            case 't':
+                options.tiny = true;
+                break;
+             case 'x':
+                options.nogui = true;
                 break;
             case 'v':
-               video_path = optarg;
+               options.video_path = optarg;
                 break;
             case 'w':
-                w = atoi(optarg);
+                options.w = atoi(optarg);
             break;
                 case '?':
             default:
@@ -68,13 +96,13 @@ int main(int argc, char** argv) {
         }
     }
 
-    if(video_path.empty())
+    if(options.video_path.empty())
     {
         usage(argv[0]);
         return -1;
     }
 
-    if (!nogui)
+    if (!options.nogui)
     {
         cv::namedWindow(CW_IMG_ORIGINAL, cv::WINDOW_AUTOSIZE);
         cv::namedWindow(CW_DETECTION, 	 cv::WINDOW_AUTOSIZE);
@@ -83,23 +111,41 @@ int main(int argc, char** argv) {
         cv::moveWindow(CW_DETECTION, 680, 10);
     }
 
+    keymolen::AsyncPipe<cv::Mat> result_pipe;
+
     //start the analyzer threads
-    analyze(video_path);
+    std::vector<std::thread> threads;
+    for (int i=0; i<PIPE_CNT; i++)
+    {
+      threads.emplace_back(&analyze, pipe_info[i].path, &result_pipe, i);
+    }
 
     //result thread
+    cv::Mat analyzed_frame;
+    while(true)
+    {
+        analyzed_frame = result_pipe.pull(true);
+        std::cout << "result..." << std::endl;
+
+        if (!options.nogui)
+        {
+          imshow(CW_DETECTION, analyzed_frame);
+        }
+
+    }
 
     return 0;
 }
 
 
 
-void analyze(std::string video_path)
+void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* r, int id)
 {
+    keymolen::AsyncPipe<cv::Mat>& result_pipe = *r;
+
     cv::Mat frame;
-    cv::Mat analyzed_frame;
     keymolen::AsyncPipe<cv::Mat> detector_pipe;
-    keymolen::AsyncPipe<cv::Mat> result_pipe;
-    keymolen::FrameAnalyzer frame_analyzer(detector_pipe, result_pipe);
+    keymolen::FrameAnalyzer frame_analyzer(detector_pipe, result_pipe, options.tiny, id);
     frame_analyzer.start();
 
     uint64_t pushed = 0;
@@ -128,24 +174,9 @@ void analyze(std::string video_path)
                 std::cout << "eof..." << std::endl;
                 break;
             }
-            if (!nogui)
+            if (!options.nogui)
             {
                 imshow(CW_IMG_ORIGINAL, frame);
-            }
-
-            if (!result_pipe.is_empty())
-            {
-                std::cout << "result..." << std::endl;
-
-                analyzed_frame = result_pipe.pull();
-                
-                //cv::imwrite("some.jpg", cvmat);
-
-                if (!nogui)
-                {
-                    imshow(CW_DETECTION, analyzed_frame);
-                }
-
             }
 
             if(detector_pipe.push(frame))
@@ -157,9 +188,9 @@ void analyze(std::string video_path)
                 dropped++;
             }
 
-            if (w)
+            if (options.w)
             {
-                if (cv::waitKey(w) == 27)
+                if (cv::waitKey(options.w) == 27)
                 {
                     break;
                 }

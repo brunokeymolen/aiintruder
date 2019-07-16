@@ -44,9 +44,13 @@ $(ENVIRONMENT):
 	mkfifo /tmp/cam-0{0,1,2,3,4}.pipe
 
 dependencies:
+	@echo "YoloV3 - full"
 	wget https://pjreddie.com/media/files/yolov3.weights
 	wget https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg?raw=true -O ./yolov3.cfg
 	wget https://github.com/pjreddie/darknet/blob/master/data/coco.names?raw=true -O ./coco.names
+	@echo "YoloV3 - tiny"
+	wget https://github.com/pjreddie/darknet/blob/master/cfg/yolov3-tiny.cfg?raw=true -O ./yolov3-tiny.cfg
+	wget https://pjreddie.com/media/files/yolov3-tiny.weights?raw=true -O ./yolov3-tiny.weights
 
 clean:
 	rm -Rf *.o $(TARGET)
