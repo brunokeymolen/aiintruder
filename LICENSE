@@ -1,13 +1,20 @@
-NNIPCamera
+AI Intruder
 copyright: 2019 Bruno Keymolen (bruno.keymolen@gmail.com)
+
 
 FTP server 
 copyright: Xu Wang 
 https://github.com/xu-wang11/FtpServer
+
 
 Yolo detection with OpenCV
 copyright: Satya Mallick
 Techniques and code fragments from: 
 https://www.learnopencv.com/deep-learning-based-object-detection-using-yolov3-with-opencv-python-c/
 please check the file : LICENSE.objectdetection.yolo 
+
+
+Telegram client
+copyright: by Fabian Schlenz
+https://github.com/fabianonline/telegram.sh
 
