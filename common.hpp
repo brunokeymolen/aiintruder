@@ -19,7 +19,16 @@
 #include <vector>
 #include <cstdint>
 
+#include <sys/types.h>
+#include <sys/syscall.h>
+
 namespace keymolen {
+
+    inline pid_t gettid()
+    {
+        return syscall(__NR_gettid);
+    }
+
 }
 
 #endif

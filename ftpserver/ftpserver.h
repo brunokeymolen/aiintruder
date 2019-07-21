@@ -5,6 +5,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
+
+#include "options.hpp"
+
 //define FtpServer
 #define BUFFER_SIZE 1000	
 #define FTP_PORT 8000
@@ -16,6 +19,7 @@ struct FtpServer
 	//int 			_accept;
 	char			_relative_path[100];//ftp server root path
 	char			_ip[20];
+    keymolen::Options *_options;
 };
 
 struct FtpClient

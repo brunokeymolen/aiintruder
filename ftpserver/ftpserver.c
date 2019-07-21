@@ -8,11 +8,14 @@
 #include "_file.h"
 
 #include <iostream>
-#include "../common/async_pipe.hpp"
+#include "async_pipe.hpp"
+#include "options.hpp"
 
-#define PIPE_CNT 5
+static int PIPE_CNT = 0;
 #define BLOCKSIZE 4096
-#define PIPE_QUEUE_SIZE 10
+
+keymolen::Options *_options = NULL;
+
 
 struct s_pipe_info
 {
@@ -21,21 +24,22 @@ struct s_pipe_info
     keymolen::AsyncPipe<char*>* pipe;
 };
 
-struct s_pipe_info pipe_info[PIPE_CNT] = { 
+struct s_pipe_info *pipe_info = NULL;
+#if 0
+[PIPE_CNT] = { 
                                 { "/tmp/cam-00.pipe", 0, NULL},
-                                { "/tmp/cam-01.pipe", 0, NULL},
-                                { "/tmp/cam-02.pipe", 0, NULL},
-                                { "/tmp/cam-03.pipe", 0, NULL},
-                                { "/tmp/cam-04.pipe", 0, NULL}
+                                { "/tmp/cam-01.pipe", 0, NULL}
                               };
 
-pthread_mutex_t pipe_lock;
 
 
 void write_pipe(int pipe_id, const char* data, int len)
 {
     
 }
+#endif
+
+pthread_mutex_t pipe_lock;
 
 
 #define TRUE 1
@@ -69,6 +73,15 @@ void init_ftp_server(struct FtpServer* ftp) {
 
 //start socket listening
 void start_ftp_server(struct FtpServer* ftp) {
+    _options = ftp->_options;
+
+    PIPE_CNT = _options->pipes.pipe_paths.size();
+    pipe_info = (s_pipe_info*)calloc(PIPE_CNT, sizeof(s_pipe_info));
+    for (int i=0; i<PIPE_CNT; i++)
+    {
+        pipe_info[i].path = _options->pipes.pipe_paths[i].c_str();
+    }
+
 //default watch over 20 sockets
 	char log[200];
 	listen(ftp->_socket, 20);
@@ -592,12 +605,20 @@ int open_alarm_pipe()
   {
     if (pipe_info[i].fd == 0)
     {
-      alarm_pipe = pipe_info[i].fd = open(pipe_info[i].path, O_WRONLY);
+      printf("opening %s\n", pipe_info[i].path);
+      //alarm_pipe = pipe_info[i].fd = open(pipe_info[i].path, (O_WRONLY | O_NONBLOCK) );
+      alarm_pipe = pipe_info[i].fd = open(pipe_info[i].path, (O_WRONLY) );
+      if (alarm_pipe <= 0)
+      {
+          printf("error opening pipe %s, %s, is anyone reading?\n", pipe_info[i].path, pipe_info[i].path);
+          alarm_pipe = 0;
+      }
       printf("opened pipe, index: %d, fd: %d (%d), pipe: %s\n", i, pipe_info[i].fd, alarm_pipe, pipe_info[i].path);
       break;
     }
   }
   pthread_mutex_unlock(&pipe_lock);
+  printf("open_alarm_pipe, result: %d\n", alarm_pipe);
   return alarm_pipe;
 }
 

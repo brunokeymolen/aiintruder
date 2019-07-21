@@ -111,7 +111,7 @@ namespace keymolen
             }
 
             //rudimentary power management
-            sleep(1);
+            sleep(3);
             //remove from the pipe, make place for new
             frame_pipe_.pull(false); 
         }
