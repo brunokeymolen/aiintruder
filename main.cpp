@@ -7,6 +7,8 @@
  *
  * Redistribution of this material is strictly prohibited.
  */
+#include "common.hpp"
+
 #include <stdio.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -16,6 +18,9 @@
 #include <thread>
 #include <vector>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <opencv2/highgui/highgui_c.h>
 #include "opencv2/highgui/highgui.hpp"
@@ -24,11 +29,15 @@
 
 #include "common/async_pipe.hpp"
 #include "frame_analyzer.hpp"
+#include "common/options.hpp"
 
 //extern FILE *stdin;
 //extern FILE *stdout;
 //extern FILE *stderr;
 
+
+
+#if 0
 
 struct Options
 {
@@ -38,22 +47,25 @@ struct Options
   bool tiny = false;
 } options;
 
+#endif
 
+std::string config_path;
 
-#define PIPE_CNT 5
+#if 0
+#define PIPE_CNT 1
 struct s_pipe_info
 {
     const char* path;
     int fd;
 };
-struct s_pipe_info pipe_info[PIPE_CNT] = { 
+struct s_pipe_info pipe_info[5] = { 
                                 { "/tmp/cam-00.pipe", 0},
                                 { "/tmp/cam-01.pipe", 0},
                                 { "/tmp/cam-02.pipe", 0},
                                 { "/tmp/cam-03.pipe", 0},
                                 { "/tmp/cam-04.pipe", 0}
                               };
-
+#endif
 
 const char* CW_IMG_ORIGINAL 	= "Original";
 const char* CW_DETECTION  	  = "Detection";
@@ -66,43 +78,42 @@ void usage(char * s)
 {
 
 	fprintf( stderr, "\n");
-    	fprintf( stderr, "%s -v <video file>  -w <pause between frames in ms> [-x](nogui) [-t](tiny) \nbuild: %s-%s \n", s, __DATE__, __TIME__);
+  	fprintf( stderr, "%s : %s-%s \n", s, __DATE__, __TIME__);
+	fprintf( stderr, "%s -c <config file>\n", s);
+	fprintf( stderr, "example: %s -c conf/aiintruder.conf\n", s);
 	fprintf( stderr, "\n");
 }
 
 int main(int argc, char** argv) {
-
     int c;
-    while ( ((c = getopt( argc, argv, "txw:v:?" ) ) ) != -1 )
+    while ( ((c = getopt( argc, argv, "c:?" ) ) ) != -1 )
     {
         switch (c)
         {
-            case 't':
-                options.tiny = true;
+            case 'c':
+                config_path = optarg;
                 break;
-             case 'x':
-                options.nogui = true;
-                break;
-            case 'v':
-               options.video_path = optarg;
-                break;
-            case 'w':
-                options.w = atoi(optarg);
-            break;
-                case '?':
+            case '?':
             default:
                 usage(argv[0]);
                 return -1;
         }
     }
 
-    if(options.video_path.empty())
+    if(config_path.empty())
     {
         usage(argv[0]);
         return -1;
     }
 
-    if (!options.nogui)
+    keymolen::Options *options = keymolen::Options::Instance();
+    if (options->Read(config_path.c_str()) != 0)
+    {
+        std::cout << "invalid config file! " << config_path << std::endl;
+        return -1;
+    }
+
+    if (options->aiintruder.gui)
     {
         cv::namedWindow(CW_IMG_ORIGINAL, cv::WINDOW_AUTOSIZE);
         cv::namedWindow(CW_DETECTION, 	 cv::WINDOW_AUTOSIZE);
@@ -115,9 +126,9 @@ int main(int argc, char** argv) {
 
     //start the analyzer threads
     std::vector<std::thread> threads;
-    for (int i=0; i<PIPE_CNT; i++)
+    for (unsigned int i=0; i<options->pipes.pipe_paths.size(); i++)
     {
-      threads.emplace_back(&analyze, pipe_info[i].path, &result_pipe, i);
+      threads.emplace_back(&analyze, options->pipes.pipe_paths[i], &result_pipe, i);
     }
 
     //result thread
@@ -127,7 +138,7 @@ int main(int argc, char** argv) {
         analyzed_frame = result_pipe.pull(true);
         std::cout << "result..." << std::endl;
 
-        if (!options.nogui)
+        if (options->aiintruder.gui)
         {
           imshow(CW_DETECTION, analyzed_frame);
         }
@@ -141,11 +152,15 @@ int main(int argc, char** argv) {
 
 void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* r, int id)
 {
+    std::cout << "setup thread id: " << keymolen::gettid() << " path: " << video_path << std::endl;
+
+    keymolen::Options *options = keymolen::Options::Instance();
+    
     keymolen::AsyncPipe<cv::Mat>& result_pipe = *r;
 
     cv::Mat frame;
     keymolen::AsyncPipe<cv::Mat> detector_pipe;
-    keymolen::FrameAnalyzer frame_analyzer(detector_pipe, result_pipe, options.tiny, id);
+    keymolen::FrameAnalyzer frame_analyzer(detector_pipe, result_pipe, options->aiintruder.yolo_tiny, id);
     frame_analyzer.start();
 
     uint64_t pushed = 0;
@@ -154,6 +169,8 @@ void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* r, int id)
 
     while (true)
     {
+
+        std::cout << "opening : " << video_path << std::endl; 
 
         cv::VideoCapture reader(video_path);
 
@@ -174,7 +191,7 @@ void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* r, int id)
                 std::cout << "eof..." << std::endl;
                 break;
             }
-            if (!options.nogui)
+            if (options->aiintruder.gui)
             {
                 imshow(CW_IMG_ORIGINAL, frame);
             }
@@ -188,9 +205,9 @@ void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* r, int id)
                 dropped++;
             }
 
-            if (options.w)
+            if (options->aiintruder.gui)
             {
-                if (cv::waitKey(options.w) == 27)
+                if (cv::waitKey(20) == 27)
                 {
                     break;
                 }

@@ -12,12 +12,15 @@ ENVIRONMENT=/tmp/cam-00.pipe
 SHELL=/bin/bash
 TARGET=aiintruder
 
+LIBRARIES=libconfig++ opencv
+
 #opencv
-CXXFLAGS+=`pkg-config opencv --cflags`
-LDFLAGS+=`pkg-config opencv --libs`
+CXXFLAGS+=`pkg-config ${LIBRARIES} --cflags`
+LDFLAGS+=`pkg-config ${LIBRARIES} --libs`
 
 SRC =	main.o \
-		frame_analyzer.o
+		frame_analyzer.o \
+		common/options.o
 	
 #all: ftpserver-static-lib vdecoder
 all: vdecoder $(FTPSERVER) $(ENVIRONMENT)
@@ -44,6 +47,9 @@ $(ENVIRONMENT):
 	mkfifo /tmp/cam-0{0,1,2,3,4}.pipe
 
 dependencies:
+	sudo apt install libconfig++-dev
+
+yolo:
 	@echo "YoloV3 - full"
 	wget https://pjreddie.com/media/files/yolov3.weights
 	wget https://github.com/pjreddie/darknet/blob/master/cfg/yolov3.cfg?raw=true -O ./yolov3.cfg
@@ -51,7 +57,7 @@ dependencies:
 	@echo "YoloV3 - tiny"
 	wget https://github.com/pjreddie/darknet/blob/master/cfg/yolov3-tiny.cfg?raw=true -O ./yolov3-tiny.cfg
 	wget https://pjreddie.com/media/files/yolov3-tiny.weights?raw=true -O ./yolov3-tiny.weights
-
+	
 clean:
 	rm -Rf *.o $(TARGET)
 
