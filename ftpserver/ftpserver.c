@@ -8,44 +8,18 @@
 #include "_file.h"
 
 #include <iostream>
-#include "async_pipe.hpp"
-#include "options.hpp"
 
-static int PIPE_CNT = 0;
 #define BLOCKSIZE 4096
 
 keymolen::Options *_options = NULL;
+keymolen::FTPHook *_ftphook = NULL;
 
 
-struct s_pipe_info
-{
-    const char* path;
-    int fd;
-    keymolen::AsyncPipe<char*>* pipe;
-};
-
-struct s_pipe_info *pipe_info = NULL;
-#if 0
-[PIPE_CNT] = { 
-                                { "/tmp/cam-00.pipe", 0, NULL},
-                                { "/tmp/cam-01.pipe", 0, NULL}
-                              };
-
-
-
-void write_pipe(int pipe_id, const char* data, int len)
-{
-    
-}
-#endif
-
-pthread_mutex_t pipe_lock;
 
 
 #define TRUE 1
 //Init socket
 void init_ftp_server(struct FtpServer* ftp) {
-  pthread_mutex_init(&pipe_lock, NULL);
 
 	//strcpy(ftp->_relative_path, "/home/xu");//root path
 	ftp->_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -74,13 +48,8 @@ void init_ftp_server(struct FtpServer* ftp) {
 //start socket listening
 void start_ftp_server(struct FtpServer* ftp) {
     _options = ftp->_options;
+    _ftphook = ftp->_hook;
 
-    PIPE_CNT = _options->pipes.pipe_paths.size();
-    pipe_info = (s_pipe_info*)calloc(PIPE_CNT, sizeof(s_pipe_info));
-    for (int i=0; i<PIPE_CNT; i++)
-    {
-        pipe_info[i].path = _options->pipes.pipe_paths[i].c_str();
-    }
 
 //default watch over 20 sockets
 	char log[200];
@@ -586,6 +555,7 @@ void* handle_RETR(void* retr) {
 	return NULL;
 }
 
+#if 0
 int is_alarm(const char* path)
 {
   printf("is_alarm: %s\n", path);
@@ -596,134 +566,94 @@ int is_alarm(const char* path)
   }
   return 0;
 }
-
-int open_alarm_pipe()
-{
-  int alarm_pipe = 0;
-  pthread_mutex_lock(&pipe_lock);
-  for (int i=0; i<PIPE_CNT;i++)
-  {
-    if (pipe_info[i].fd == 0)
-    {
-      printf("opening %s\n", pipe_info[i].path);
-      //alarm_pipe = pipe_info[i].fd = open(pipe_info[i].path, (O_WRONLY | O_NONBLOCK) );
-      alarm_pipe = pipe_info[i].fd = open(pipe_info[i].path, (O_WRONLY) );
-      if (alarm_pipe <= 0)
-      {
-          printf("error opening pipe %s, %s, is anyone reading?\n", pipe_info[i].path, pipe_info[i].path);
-          alarm_pipe = 0;
-      }
-      printf("opened pipe, index: %d, fd: %d (%d), pipe: %s\n", i, pipe_info[i].fd, alarm_pipe, pipe_info[i].path);
-      break;
-    }
-  }
-  pthread_mutex_unlock(&pipe_lock);
-  printf("open_alarm_pipe, result: %d\n", alarm_pipe);
-  return alarm_pipe;
-}
-
-void close_alarm_pipe(int alarm_pipe)
-{
-  if (alarm_pipe == 0)
-  {
-    return;
-  }
-  pthread_mutex_lock(&pipe_lock);
-  for (int i=0; i<PIPE_CNT;i++)
-  {
-    if(pipe_info[i].fd == alarm_pipe)
-    {
-      pipe_info[i].fd = 0;
-      printf("clear pipe, index: %d, fd: %d (%d), pipe: %s\n", i, pipe_info[i].fd, alarm_pipe, pipe_info[i].path);
-      break;
-    }
-  }
-  close(alarm_pipe);
-    printf("closed fd: %d\n", alarm_pipe);
-  pthread_mutex_unlock(&pipe_lock);
-}
+#endif
 
 
 //
 void handle_STOR(struct FtpClient* client, char* path) {
-    
-    //establish_tcp_connection(client);
-	FILE* file = NULL;
-	char _path[400];
-	strcpy(_path, client->_root);
-	strcat(_path, client->_cur_path);
-	if (_path[strlen(_path) - 1] != '/') {
-		strcat(_path, "/");
-	}
-	strcat(_path, path);
+
+  //establish_tcp_connection(client);
+  FILE* file = NULL;
+  char _path[400];
+  strcpy(_path, client->_root);
+  strcat(_path, client->_cur_path);
+  if (_path[strlen(_path) - 1] != '/') {
+    strcat(_path, "/");
+  }
+  strcat(_path, path);
 
 
-    std::cout << "handle_STOR path: " << path << " client->_root: " << client->_root << " client->_cur_path: " << client->_cur_path << " _path: " << _path << std::endl;
+  std::cout << "handle_STOR path: " << path << " client->_root: " << client->_root << " client->_cur_path: " << client->_cur_path << " _path: " << _path << std::endl;
   printf("fopen: %s\n", _path);
 
-	file = fopen(_path, "wb");
-	show_log(_path);
+  file = fopen(_path, "wb");
+  show_log(_path);
 
-	if (file == NULL ) {
-		send_msg(client->_client_socket, "451 trouble to stor file\r\n");
-		return;
-	}
+  if (file == NULL ) {
+    send_msg(client->_client_socket, "451 trouble to stor file\r\n");
+    return;
+  }
 
-	if (establish_tcp_connection(client) > 0) {
-		send_msg(client->_client_socket,
-				"150 Data connection accepted; transfer starting.\r\n");
-		char buf[4096];
-		int j = 0;
+  if (establish_tcp_connection(client) > 0) {
+    send_msg(client->_client_socket,
+        "150 Data connection accepted; transfer starting.\r\n");
+    char buf[4096];
+    int j = 0;
 
-        //Tell analyzer we start with a new mkv file 
-        int alarm_pipe = 0;
-        if ( is_alarm(path) )
-        {
-          alarm_pipe = open_alarm_pipe();
-          if (alarm_pipe == 0)
-          {
-            printf("alarm but no free pipes.\n");
-          }
-        }
+    //Tell analyzer we start with a new mkv file 
+    int alarm_pipe = 0;
+    int alarm_type = _ftphook->is_alarm(path);
+    if ( alarm_type != 0 )
+    {
+      alarm_pipe = _ftphook->open_analyzer_pipe(alarm_type);
+      if (alarm_pipe == 0)
+      {
+        printf("alarm but no free pipes.\n");
+      }
+    }
 
-		while (1) {
-			j = recv(client->_data_socket, buf, 4096, 0);
-            //printf("j: %d\n", j);
-			if (j == 0) {
-                printf("cancel, we are done\n");
-				cancel_tcp_connection(client);
-				break;
-			}
-			if (j < 0) {
-                printf("cancel, some error: j=%d\n", j);
-				send_msg(client->_client_socket,
-						"426 TCP connection was established but then broken\r\n");
-				return;
-			}
-			
-            fwrite(buf, 1, j, file);
-      
-            //give buffer to analyzer 
-            if (alarm_pipe && j>0)
-            {
-                write(alarm_pipe, buf, j);
-            }
+    while (1) {
+      j = recv(client->_data_socket, buf, 4096, 0);
+      //printf("j: %d\n", j);
+      if (j == 0) {
+        printf("cancel, we are done\n");
+        cancel_tcp_connection(client);
+        break;
+      }
+      if (j < 0) {
+        printf("cancel, some error: j=%d\n", j);
+        send_msg(client->_client_socket,
+            "426 TCP connection was established but then broken\r\n");
+        return;
+      }
 
-		}
-		cancel_tcp_connection(client);
-		fclose(file);
+      if (_options->ftpserver.save)
+      {
+        fwrite(buf, 1, j, file);
+      }
+
+      //give buffer to analyzer 
+      if (alarm_pipe && j>0)
+      {
+        _ftphook->write(alarm_pipe, buf, j); 
+      }
+
+    }
+    cancel_tcp_connection(client);
+    fclose(file);
 
     //tell analyzer we are done for now 
-    close_alarm_pipe(alarm_pipe);
+    _ftphook->close_analyzer_pipe(alarm_pipe);
 
-     
 
-		send_msg(client->_client_socket, "226 stor ok.\r\n");
-	} else {
-		send_msg(client->_client_socket,
-				"425 TCP connection cannot be established.\r\n");
-	}
+
+    send_msg(client->_client_socket, "226 stor ok.\r\n");
+  } else {
+    send_msg(client->_client_socket,
+        "425 TCP connection cannot be established.\r\n");
+  }
 }
+
 //
 void handle_DELE(struct FtpClient* client, char* name) {
 

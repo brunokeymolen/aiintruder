@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "common.hpp"
-#include "common/async_pipe.hpp"
+#include "async_pipe.hpp"
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/highgui/highgui_c.h>
@@ -28,19 +28,21 @@ namespace keymolen
     class FrameAnalyzer
     {
     public:
-        FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out, bool tiny, int id);
+        //FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out, bool tiny, int id);
+        FrameAnalyzer(bool tiny, int id);
         virtual ~FrameAnalyzer();
     public:
         void start();
         void stop();
+        bool push_frame(cv::Mat& frame);
     private:
         const float confThreshold = 0.5; // Confidence threshold
         const float nmsThreshold = 0.4;  // Non-maximum suppression threshold
         const int inpWidth = 416;  // Width of network's input image
         const int inpHeight = 416; // Height of network's input image
     private:
-        AsyncPipe<cv::Mat>& frame_pipe_;
-        AsyncPipe<cv::Mat>& result_pipe_;
+        AsyncPipe<cv::Mat> frame_pipe_;
+//        AsyncPipe<cv::Mat>& result_pipe_;
         std::thread thread_;
         bool run_;
         std::vector<std::string> classes_;

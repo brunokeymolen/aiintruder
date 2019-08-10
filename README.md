@@ -26,6 +26,10 @@ shell 2:<br>
 ./nnipcamera -v /tmp/cam-00.pipe<br>
 
 
+NFS Mounts
+sudo apt-get install nfs-common
+sudo mount 192.168.100.5:/mnt/sharedfolder /mnt/sharedfolder_client
+
 
 LICENSE<br>
 Please check the accompanied LICENSE file.<br><br>
