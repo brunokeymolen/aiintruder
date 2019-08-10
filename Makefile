@@ -2,9 +2,9 @@
 # http://www.keymolen.com
 
 CXX=g++ 
-CC=gcc
+CC=g++
 OPTFLAGS=-g3 -ggdb -O0
-CXXFLAGS=-std=c++11 -Wall -I. -I/usr/local/include $(OPTFLAGS)
+CXXFLAGS=-std=c++11 -Wall -I. -Icommon -I/usr/local/include $(OPTFLAGS)
 CFLAGS=-Wall $(OPTFLAGS)
 LDFLAGS= -L/usr/local/lib -lpthread $(OPTFLAGS) 
 FTPSERVER=ftpserver/server
@@ -12,24 +12,30 @@ ENVIRONMENT=/tmp/cam-00.pipe
 SHELL=/bin/bash
 TARGET=aiintruder
 
-LIBRARIES=libconfig++ opencv
+LIBRARIES=libconfig++ opencv libavformat libavcodec libswscale
 
 #opencv
-CXXFLAGS+=`pkg-config ${LIBRARIES} --cflags`
-LDFLAGS+=`pkg-config ${LIBRARIES} --libs`
+CXXFLAGS+= `PKG_CONFIG_PATH=/opt/keymolen/lib/pkgconfig pkg-config $(LIBRARIES) --cflags`
+LDFLAGS+= `PKG_CONFIG_PATH=/opt/keymolen/lib/pkgconfig pkg-config $(LIBRARIES) --libs`
 
-SRC =	main.o \
+SRC=ftpserver/ftpserver.o \
+		ftpserver/_string.o
+
+SRC+=	main.o \
+		aiintruder.o \
 		frame_analyzer.o \
-		common/options.o
+		common/options.o \
+		vdecoder.o \
+		jdecoder.o
 	
 #all: ftpserver-static-lib vdecoder
-all: vdecoder $(FTPSERVER) $(ENVIRONMENT)
+all: vdecoder $(ENVIRONMENT)
 
 vdecoder: $(SRC) $(MODULES)
 	$(CXX) $(MODULES) $(SRC) $(LDFLAGS) -o $(TARGET)
 
-$(FTPSERVER):
-	cd ftpserver && $(MAKE) 
+#$(FTPSERVER):
+#	cd ftpserver && $(MAKE) 
 
 %.o: %.c %.h
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -44,7 +50,7 @@ $(FTPSERVER):
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(ENVIRONMENT):
-	mkfifo /tmp/cam-0{0,1,2,3,4}.pipe
+	#mkfifo /tmp/cam-0{0,1,2,3,4}.pipe
 
 dependencies:
 	sudo apt install libconfig++-dev
@@ -60,11 +66,12 @@ yolo:
 	
 clean:
 	rm -Rf *.o $(TARGET)
+	rm -f ftpserver/*.o
 
 make distclean:
 	rm -f /tmp/cam-0{0,1,2,3,4}.pipe
 	make clean
-	cd ftpserver && $(MAKE) clean
+	#cd ftpserver && $(MAKE) clean
 
 
 PREFIX ?= /usr

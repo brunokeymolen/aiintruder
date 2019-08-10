@@ -6,7 +6,9 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
-#include "options.hpp"
+#include "../common/options.hpp"
+#include "../common/ftphook.hpp"
+
 
 //define FtpServer
 #define BUFFER_SIZE 1000	
@@ -19,7 +21,9 @@ struct FtpServer
 	//int 			_accept;
 	char			_relative_path[100];//ftp server root path
 	char			_ip[20];
-    keymolen::Options *_options;
+  
+  keymolen::Options *_options;
+  keymolen::FTPHook *_hook;
 };
 
 struct FtpClient

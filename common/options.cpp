@@ -28,7 +28,9 @@ namespace keymolen {
     Options::AIIntruder::AIIntruder() :
          gui(false),
          yolo_tiny(true),
-         process_interval_sec(3)
+         process_interval_sec(3),
+         decoder_instances(2),
+         analyzer_instances(1)
     {
     }
 
@@ -109,6 +111,8 @@ namespace keymolen {
             entry.lookupValue("gui", *(const_cast<bool*>(&(aiintruder.gui))));
             entry.lookupValue("yolo_tiny", *(const_cast<bool*>(&(aiintruder.yolo_tiny))));
             entry.lookupValue("process_interval_sec", *(const_cast<unsigned int*>(&(aiintruder.process_interval_sec))));
+            entry.lookupValue("decoder_instances", *(const_cast<unsigned int*>(&(aiintruder.decoder_instances))));
+            entry.lookupValue("analyzer_instances", *(const_cast<unsigned int*>(&(aiintruder.analyzer_instances))));
        }
 
        return 0;

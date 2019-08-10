@@ -22,6 +22,12 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
+#define LOG_PRE __FILE__ << " " << __FUNCTION__<< ":" << __LINE__ << " "
+#define LOG_DBG(X) std::cout << LOG_PRE << X << std::endl;
+#define LOG_WARN LOG_DBG
+#define LOG_ERR LOG_DBG
+
+
 namespace keymolen {
 
     inline pid_t gettid()
