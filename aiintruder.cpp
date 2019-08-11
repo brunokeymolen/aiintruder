@@ -73,10 +73,12 @@ namespace keymolen
     if (strstr(path, alarm_string) != NULL)
     {
       int l = strlen(path);
+#if 0
       if (memcmp(path+(l-4), ".mkv", 4) == 0)
       {
         return ALARM_TYPE_MKV;
       }
+#endif
       if (memcmp(path+(l-4), ".jpg", 4) == 0)
       {
         return ALARM_TYPE_JPG;
