@@ -20,16 +20,17 @@
 #include "options.hpp"
 #include "frame_analyzer.hpp"
 #include "vdecoder.hpp"
+#include "jdecoder.hpp"
 
 #include <opencv2/highgui/highgui_c.h>
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/core/core.hpp"
 
-#define ALARM_TYPE_NOT 0;
-#define ALARM_TYPE_MKV 1;
-#define ALARM_TYPE_JPG 2;
-#define ALARM_TYPE_UNKNOWN 3;
+#define ALARM_TYPE_NOT 0
+#define ALARM_TYPE_MKV 1
+#define ALARM_TYPE_JPG 2
+#define ALARM_TYPE_UNKNOWN 3
 
 namespace keymolen
 {
@@ -39,13 +40,27 @@ namespace keymolen
     private:
       struct Session
       {
-        Session(VDecoder* d) 
-          : free(true), decoder(NULL)//, data(32*1024*1024)
+        Session(VDecoder* v, JDecoder* j) 
+          : free(true), type(ALARM_TYPE_NOT), vdecoder(v), jdecoder(j)
         {
-
+        }
+        ~Session()
+        {
+          if (vdecoder)
+          {
+            delete(vdecoder);
+          }
+          if (jdecoder)
+          {
+            delete (jdecoder);
+          }
         }
         bool free;
-        VDecoder *decoder;
+        int type;
+        VDecoder *vdecoder;
+        JDecoder *jdecoder;
+        
+        Session& operator=(const Session& other) = default;
 //        AsyncBuffer data;
       };
       std::mutex session_mutex;

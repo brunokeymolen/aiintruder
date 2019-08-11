@@ -129,6 +129,7 @@ int main(int argc, char** argv) {
     init_ftp_server(s);
     start_ftp_server(s);
 
+    LOG_DBG("end...");
     aiintruder.stop();
 
 
