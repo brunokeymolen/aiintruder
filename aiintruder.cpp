@@ -34,18 +34,15 @@ namespace keymolen
 
     //create notification class
     
-    //setup FrameAnalyzer (NN) instances and pass notification 
-    for (unsigned int i=0; i < options_->aiintruder.analyzer_instances; i++)
-    {
-      FrameAnalyzer *analyzer = new FrameAnalyzer(options_->aiintruder.yolo_tiny, i);
-      analyzers_.push_back(analyzer);
-    }
-    
-    //setup decoders (assign a frame analyzer to it, multiple decoders can share one frame analyzer) 
+    //setup FrameAnalyzer (NN) 
+    FrameAnalyzer *analyzer = new FrameAnalyzer(options_->aiintruder.yolo_tiny, 0);
+    analyzers_.push_back(analyzer);
+   
+    sessions_.reserve(options_->aiintruder.decoder_instances); //Session is not MoveInsertable 
     for (unsigned int i=0; i < options_->aiintruder.decoder_instances; i++)
     {
-      VDecoder *decoder = new VDecoder(i);
-      sessions_.emplace_back(decoder); 
+      JDecoder *j = new JDecoder();
+      sessions_.emplace_back(nullptr, j);
     }
 
     //start analyzer threads
@@ -53,9 +50,6 @@ namespace keymolen
     {
       a->start();
     }
-
-    //start decoder threads
-    
 
   }
   
@@ -75,15 +69,15 @@ namespace keymolen
   // 
   int AIIntruder::is_alarm(const char* path)
   {
-    static const char* alarm_string = "MDalarm";
+    static const char* alarm_string = "MDAlarm";
     if (strstr(path, alarm_string) != NULL)
     {
       int l = strlen(path);
-      if (strstr(path+(l-4), ".mkv") == 0)
+      if (memcmp(path+(l-4), ".mkv", 4) == 0)
       {
         return ALARM_TYPE_MKV;
       }
-      if (strstr(path+(l-4), ".jpg") == 0)
+      if (memcmp(path+(l-4), ".jpg", 4) == 0)
       {
         return ALARM_TYPE_JPG;
       }
@@ -96,15 +90,20 @@ namespace keymolen
   int AIIntruder::open_analyzer_pipe(int type)
   {
     //get a free decoder and open it
-    int found = -1;
+    int found = 0;
     session_mutex.lock();
     for (unsigned int i=0; i<sessions_.size(); i++)
     {
       if (sessions_[i].free)
       {
-        sessions_[i].free = false;
-        found = i;
-        break;
+        if ((type == ALARM_TYPE_JPG && sessions_[i].jdecoder) || 
+            (type == ALARM_TYPE_MKV && sessions_[i].vdecoder))
+        {
+          sessions_[i].type = type;
+          sessions_[i].free = false;
+          found = i+1;
+          break;
+        }
       }
     }
     session_mutex.unlock();
@@ -114,16 +113,58 @@ namespace keymolen
   
   void AIIntruder::close_analyzer_pipe(int h)
   {
+    h--;
+    if (h < 0)
+    {
+      return;
+    }
+    Session& s = sessions_[h];
+    if (s.type == ALARM_TYPE_JPG)
+    {
+      //send to frame analyzer!!!!
+      cv::Mat mat = s.jdecoder->get_mat();
+      for (auto a : analyzers_)
+      {
+        if (a->push_frame(mat))
+        {
+          break;
+        }
+        else
+        {
+          LOG_DBG("could not push");
+        }
+      }
+
+    }
+    else if (s.type == ALARM_TYPE_MKV)
+    {
+
+    }
+
     //release the decoder, free it again
     session_mutex.lock();
+    sessions_[h].type = ALARM_TYPE_NOT;
     sessions_[h].free = true;
     session_mutex.unlock();
   }
   
   void AIIntruder::write(int h, const char* buf, int len)
   {
-    //keep data to pass data to the decoder at a later time
-    //sessions_[h].data.push(buf, len);
+    h--;
+    if (h < 0)
+    {
+      return;
+    }
+    Session& s = sessions_[h];
+    if (s.type == ALARM_TYPE_JPG)
+    {
+      s.jdecoder->decode(buf, len);
+    }
+    else if (s.type == ALARM_TYPE_MKV)
+    {
+
+    }
+
   }
  
 

@@ -45,7 +45,7 @@ namespace keymolen
       JDecoder();
       virtual ~JDecoder();
     public:
-      int decode(char* data, int len);
+      int decode(const char* data, int len);
       cv::Mat get_mat();
     private:
       int buflen_;

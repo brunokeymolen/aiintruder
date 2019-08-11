@@ -14,10 +14,6 @@ namespace keymolen {
     {
     }
 
-    Options::Pipes::Pipes() 
-    {
-    }
-    
     Options::FTPServer::FTPServer() :
         root("/tmp/"),
         port(2121),
@@ -81,21 +77,6 @@ namespace keymolen {
         }
 
         libconfig::Setting &root = cfg.getRoot();
-
-        if(cfg.exists("pipes"))
-        {
-            libconfig::Setting &entry = root["pipes"];
-            libconfig::Setting& pipe_paths = entry["pipes_path"];
-            int count = pipe_paths.getLength();
-            std::cout << "pipes cnt: " << count << std::endl;
-
-            for (int i=0; i<count; i++)
-            {
-                std::string p = pipe_paths[i];
-                pipes.pipe_paths.push_back(p);
-                std::cout << p << std::endl;
-            }
-        }
 
         if(cfg.exists("ftpserver"))
         {

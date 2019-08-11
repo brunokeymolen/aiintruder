@@ -23,12 +23,6 @@ namespace keymolen
             int Read(const char* path);
             void cleanup();
         public:
-            struct Pipes
-            {
-                Pipes();
-                std::vector<std::string> pipe_paths;
-            } pipes;
-
             struct FTPServer
             {
                 FTPServer();

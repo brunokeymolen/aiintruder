@@ -606,7 +606,7 @@ void handle_STOR(struct FtpClient* client, char* path) {
     if ( alarm_type != 0 )
     {
       alarm_pipe = _ftphook->open_analyzer_pipe(alarm_type);
-      if (alarm_pipe == 0)
+      if (alarm_pipe <= 0)
       {
         printf("alarm but no free pipes.\n");
       }
@@ -637,7 +637,6 @@ void handle_STOR(struct FtpClient* client, char* path) {
       {
         _ftphook->write(alarm_pipe, buf, j); 
       }
-
     }
     cancel_tcp_connection(client);
     fclose(file);

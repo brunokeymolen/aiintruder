@@ -53,7 +53,7 @@ namespace keymolen
     free(buf_);
   }
 
-  int JDecoder::decode(char* data, int len)
+  int JDecoder::decode(const char* data, int len)
   {
     if (len > 0)
     {

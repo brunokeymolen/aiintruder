@@ -124,8 +124,6 @@ namespace keymolen
                 cv::imwrite(fname.c_str(), boxresult);
             }
 
-            //rudimentary power management
-            sleep(3);
             //remove from the pipe, make place for new
             frame_pipe_.pull(false); 
         }
