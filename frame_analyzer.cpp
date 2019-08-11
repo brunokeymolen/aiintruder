@@ -41,7 +41,7 @@ namespace keymolen
     void FrameAnalyzer::start()
     {
         run_ = true;
-        load_nn();
+        //cv::dnn::Net net = load_nn();
         thread_ = std::thread(&FrameAnalyzer::thread_loop, this);
     }
 
@@ -67,7 +67,7 @@ namespace keymolen
     }
 
 
-    void FrameAnalyzer::load_nn()
+    cv::dnn::Net FrameAnalyzer::load_nn()
     {
         // Load names of classes
         std::string classesFile = "coco.names";
@@ -79,16 +79,23 @@ namespace keymolen
         }
         
         // Load the network
-        net_ = cv::dnn::readNetFromDarknet(model_configuration_, model_weights_);
+        cv::dnn::Net net_ = cv::dnn::readNetFromDarknet(model_configuration_, model_weights_);
+#if 0
         net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+#else
+        net_.setPreferableBackend(cv::dnn::DNN_BACKEND_INFERENCE_ENGINE);
+#endif
         net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
      
-        get_output_names();
+        get_output_names(net_);
+
+        return net_;
     }
 
     void FrameAnalyzer::thread_loop()
     {
         bool hit = false;
+        cv::dnn::Net net = load_nn();
         while(run_)
         {
             cv::Mat frame = frame_pipe_.peek(true).clone(); 
@@ -96,7 +103,7 @@ namespace keymolen
 
             std::cout << "process frame" << std::endl;
             
-            yolo(frame, result_frame, hit);
+            yolo(frame, result_frame, hit, net);
 
             cv::Mat boxresult = result_frame.clone();
             result_pipe_.push(boxresult);
@@ -118,7 +125,7 @@ namespace keymolen
     }
 
 
-    void FrameAnalyzer::yolo(cv::Mat& frame, cv::Mat& result, bool& hit)
+    void FrameAnalyzer::yolo(cv::Mat& frame, cv::Mat& result, bool& hit, cv::dnn::Net net)
     {
         cv::Mat blob;
 
@@ -126,12 +133,12 @@ namespace keymolen
         cv::dnn::blobFromImage(frame, blob, 1/255.0, cvSize(inpWidth, inpHeight), cv::Scalar(0,0,0), true, false);
         
         //Sets the input to the network
-        net_.setInput(blob);
+        net.setInput(blob);
         
         std::cout << "run" << std::endl;
         // Runs the forward pass to get output of the output layers
         std::vector<cv::Mat> outs;
-        net_.forward(outs, outlayer_names_);
+        net.forward(outs, outlayer_names_);
 
         postprocess(frame, outs, hit);
         
@@ -143,7 +150,7 @@ namespace keymolen
 
 
     // Get the names of the output layers
-    void FrameAnalyzer::get_output_names()
+    void FrameAnalyzer::get_output_names(cv::dnn::Net net)
     {
         if (!outlayer_names_.empty())
         {
@@ -151,10 +158,10 @@ namespace keymolen
         }
     
         //Get the indices of the output layers, i.e. the layers with unconnected outputs
-        std::vector<int> outLayers = net_.getUnconnectedOutLayers();
+        std::vector<int> outLayers = net.getUnconnectedOutLayers();
 
         //get the names of all the layers in the network
-        std::vector<cv::String> layersNames = net_.getLayerNames();
+        std::vector<cv::String> layersNames = net.getLayerNames();
 
         // Get the names of the output layers in names
         outlayer_names_.resize(outLayers.size());

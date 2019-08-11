@@ -1,6 +1,6 @@
 FTP_STATIC_LIB=ftpserver.a
-FTP_CFLAGS=-Wall -g3 -ggdb -O0 -I . -I ../common 
-FTP_LDFLAGS=-lpthread
+FTP_CFLAGS=-Wall -g3 -ggdb -O0 -I. -I.. -I ../common 
+FTP_LDFLAGS=-no-pie -lpthread
 FTP_BINARY=server
 CC=g++
 CPP_FLAGS=-std=c++11

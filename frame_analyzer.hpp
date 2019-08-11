@@ -44,7 +44,7 @@ namespace keymolen
         std::thread thread_;
         bool run_;
         std::vector<std::string> classes_;
-        cv::dnn::Net net_;
+        //cv::dnn::Net net_;
         std::vector<cv::String> outlayer_names_;
         std::vector<std::string> intruder_classes_;
         std::string intruder_img_path_;
@@ -54,10 +54,10 @@ namespace keymolen
         int id_;
     private:
         void thread_loop();
-        void yolo(cv::Mat& frame, cv::Mat& result, bool& hit);
-        void load_nn();
+        void yolo(cv::Mat& frame, cv::Mat& result, bool& hit, cv::dnn::Net net);
+        cv::dnn::Net load_nn();
         void load_intruder_classes();
-        void get_output_names();
+        void get_output_names(cv::dnn::Net net);
         void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, bool& hit);
         void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
      };
