@@ -106,6 +106,7 @@ namespace keymolen
             cv::Mat frame = frame_pipe_.peek(true).clone(); 
             cv::Mat result_frame;
 
+            uint64_t start = getms();
             LOG_DBG("process frame");
             
             yolo(frame, result_frame, hit);
@@ -123,6 +124,10 @@ namespace keymolen
                 std::string fname = os.str();
                 cv::imwrite(fname.c_str(), boxresult);
             }
+
+            uint64_t stop = getms();
+
+            LOG_DBG("object detection time: " << stop-start << " ms.")
 
             //remove from the pipe, make place for new
             frame_pipe_.pull(false); 
