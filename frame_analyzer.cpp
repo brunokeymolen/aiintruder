@@ -130,7 +130,13 @@ namespace keymolen
                 std::string img_name = names.str();
 
                 //notification
-                system("notify.sh");
+                char pb[512];
+                getcwd(pb, 512);
+
+                std::ostringstream notify;
+                notify << pb << "/notify.sh " << fname << " " << img_name;
+                LOG_DBG(notify.str());
+                system(notify.str().c_str());
             }
 
             uint64_t stop = getms();
