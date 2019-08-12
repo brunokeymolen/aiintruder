@@ -118,6 +118,10 @@ void* communication(void* c) {
 	char str[] = "220 Anonymous FTP server ready.\r\n";
 	send_msg(client_socket, str);
 	handle_client_command(client);
+  
+  //fix bruno
+  close(client_socket);
+
 	return NULL ;
 }
 
@@ -221,6 +225,8 @@ void recv_msg(int socket, char** buf, char** cmd, char** argument) {
 }
 //show log
 void show_log(const char* log) {
+  
+  return;
 
 	if (log) {
 		//printf("%s", log);
