@@ -118,11 +118,19 @@ namespace keymolen
 
             if (hit)
             {
+                std::ostringstream names;
+                names << "alarm." << id_ << "-" << time(0) << ".jpg";
+
                 std::ostringstream os;
                 os << intruder_img_path_;
-                os << "alarm." << id_ << "-" << time(0) << ".jpg";
+                os << names.str();
                 std::string fname = os.str();
                 cv::imwrite(fname.c_str(), boxresult);
+
+                std::string img_name = names.str();
+
+                //notification
+                system("notify.sh");
             }
 
             uint64_t stop = getms();
