@@ -59,9 +59,10 @@ void start_ftp_server(struct FtpServer* ftp) {
 		int client;
 		struct sockaddr_in client_addr;
 		client = accept(ftp->_socket, (struct sockaddr*) &client_addr, &size);
-		if (client < 0) {
+		if (client <= 0) {
 			perror("accept error");
 			//exit(1);
+      continue;
 		} else {
 			socklen_t sock_length = sizeof(struct sockaddr);
 			char host_ip[100];
