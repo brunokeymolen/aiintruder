@@ -6,7 +6,9 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
-#include "options.hpp"
+#include "../common/options.hpp"
+#include "../common/ftphook.hpp"
+
 
 //define FtpServer
 #define BUFFER_SIZE 1000	
@@ -19,7 +21,9 @@ struct FtpServer
 	//int 			_accept;
 	char			_relative_path[100];//ftp server root path
 	char			_ip[20];
-    keymolen::Options *_options;
+  
+  keymolen::Options *_options;
+  keymolen::FTPHook *_hook;
 };
 
 struct FtpClient
@@ -64,7 +68,7 @@ int send_file(struct FtpClient* client, FILE* file);
 //send message
 void send_msg(int socket, const char* msg);
 //receive message
-void recv_msg(int socket, char** buf, char** cmd, char** arguments);
+int recv_msg(int socket, char** buf, char** cmd, char** arguments);
 //
 int check_user_pass(struct FtpClient* client);
 //printf log

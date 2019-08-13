@@ -57,6 +57,7 @@ int main(int argc, char**argv)
     s->_port = options->ftpserver.port;
     strncpy(s->_relative_path, options->ftpserver.root.c_str(), 100);
     s->_options = options;
+    s->_hook = this;
     
     printf("\ns->_port: %d, s->_relative_path: %s\n", s->_port, s->_relative_path); 
     

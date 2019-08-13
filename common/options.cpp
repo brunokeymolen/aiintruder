@@ -14,10 +14,6 @@ namespace keymolen {
     {
     }
 
-    Options::Pipes::Pipes() 
-    {
-    }
-    
     Options::FTPServer::FTPServer() :
         root("/tmp/"),
         port(2121),
@@ -28,7 +24,9 @@ namespace keymolen {
     Options::AIIntruder::AIIntruder() :
          gui(false),
          yolo_tiny(true),
-         process_interval_sec(3)
+         process_interval_sec(3),
+         decoder_instances(2),
+         analyzer_instances(1)
     {
     }
 
@@ -80,21 +78,6 @@ namespace keymolen {
 
         libconfig::Setting &root = cfg.getRoot();
 
-        if(cfg.exists("pipes"))
-        {
-            libconfig::Setting &entry = root["pipes"];
-            libconfig::Setting& pipe_paths = entry["pipes_path"];
-            int count = pipe_paths.getLength();
-            std::cout << "pipes cnt: " << count << std::endl;
-
-            for (int i=0; i<count; i++)
-            {
-                std::string p = pipe_paths[i];
-                pipes.pipe_paths.push_back(p);
-                std::cout << p << std::endl;
-            }
-        }
-
         if(cfg.exists("ftpserver"))
         {
             libconfig::Setting &entry = root["ftpserver"];
@@ -109,6 +92,8 @@ namespace keymolen {
             entry.lookupValue("gui", *(const_cast<bool*>(&(aiintruder.gui))));
             entry.lookupValue("yolo_tiny", *(const_cast<bool*>(&(aiintruder.yolo_tiny))));
             entry.lookupValue("process_interval_sec", *(const_cast<unsigned int*>(&(aiintruder.process_interval_sec))));
+            entry.lookupValue("decoder_instances", *(const_cast<unsigned int*>(&(aiintruder.decoder_instances))));
+            entry.lookupValue("analyzer_instances", *(const_cast<unsigned int*>(&(aiintruder.analyzer_instances))));
        }
 
        return 0;
