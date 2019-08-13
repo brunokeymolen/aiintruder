@@ -31,13 +31,16 @@
 #include "frame_analyzer.hpp"
 #include "common/options.hpp"
 
+#include "aiintruder.hpp"
+#include "ftpserver/ftpserver.h"
+
+#if 0
 //extern FILE *stdin;
 //extern FILE *stdout;
 //extern FILE *stderr;
 
 
 
-#if 0
 
 struct Options
 {
@@ -47,11 +50,9 @@ struct Options
   bool tiny = false;
 } options;
 
-#endif
 
 std::string config_path;
 
-#if 0
 #define PIPE_CNT 1
 struct s_pipe_info
 {
@@ -65,26 +66,28 @@ struct s_pipe_info pipe_info[5] = {
                                 { "/tmp/cam-03.pipe", 0},
                                 { "/tmp/cam-04.pipe", 0}
                               };
-#endif
 
 const char* CW_IMG_ORIGINAL 	= "Original";
 const char* CW_DETECTION  	  = "Detection";
+#endif
 
 
-void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* result_pipe, int id);
+//void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* result_pipe, int id);
 
 
 void usage(char * s)
 {
 
 	fprintf( stderr, "\n");
-  	fprintf( stderr, "%s : %s-%s \n", s, __DATE__, __TIME__);
+ 	fprintf( stderr, "%s : %s-%s \n", s, __DATE__, __TIME__);
 	fprintf( stderr, "%s -c <config file>\n", s);
 	fprintf( stderr, "example: %s -c conf/aiintruder.conf\n", s);
 	fprintf( stderr, "\n");
 }
 
 int main(int argc, char** argv) {
+    std::string config_path;
+
     int c;
     while ( ((c = getopt( argc, argv, "c:?" ) ) ) != -1 )
     {
@@ -113,6 +116,28 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    keymolen::AIIntruder aiintruder;
+
+    struct FtpServer *s = (struct FtpServer*) malloc(sizeof(struct FtpServer));
+    s->_port = options->ftpserver.port;
+    strncpy(s->_relative_path, options->ftpserver.root.c_str(), 100);
+    s->_options = options;
+    s->_hook = dynamic_cast<keymolen::FTPHook*>(&aiintruder);
+ 
+    aiintruder.start(); 
+
+    init_ftp_server(s);
+    start_ftp_server(s);
+
+    LOG_DBG("end...");
+    aiintruder.stop();
+
+
+    return 0;
+}
+
+
+#if 0
     if (options->aiintruder.gui)
     {
         cv::namedWindow(CW_IMG_ORIGINAL, cv::WINDOW_AUTOSIZE);
@@ -220,4 +245,7 @@ void analyze(std::string video_path, keymolen::AsyncPipe<cv::Mat>* r, int id)
     frame_analyzer.stop();
 
 }
+#endif
+
+
 

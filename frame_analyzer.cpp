@@ -15,8 +15,8 @@
 namespace keymolen
 {
 
-    FrameAnalyzer::FrameAnalyzer(AsyncPipe<cv::Mat>& pipe_in, AsyncPipe<cv::Mat>& pipe_out, bool tiny, int id) :
-        frame_pipe_(pipe_in), result_pipe_(pipe_out), run_(false), tiny_(tiny), id_(id)
+    FrameAnalyzer::FrameAnalyzer(bool tiny, int id) :
+        run_(false), tiny_(tiny), id_(id)
     {
         load_intruder_classes();
         intruder_img_path_ = "/mnt/videosecurity/ftp/camera2/intruder-detection/";
@@ -50,6 +50,10 @@ namespace keymolen
 
     }
 
+    bool FrameAnalyzer::push_frame(cv::Mat& frame)
+    {
+      return frame_pipe_.push(frame);
+    }
     
     void FrameAnalyzer::load_intruder_classes()
     {
@@ -80,7 +84,15 @@ namespace keymolen
         
         // Load the network
         net_ = cv::dnn::readNetFromDarknet(model_configuration_, model_weights_);
+        
+#if 0
+        //VPU (like Intel Movidius Myriad X / Intel Neural Compute Stick 2)
+        //https://www.learnopencv.com/using-openvino-with-opencv/
+        net_.setPreferableBackend(DNN_BACKEND_INFERENCE_ENGINE);
+#else
         net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+#endif
+
         net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
      
         get_output_names();
@@ -94,24 +106,43 @@ namespace keymolen
             cv::Mat frame = frame_pipe_.peek(true).clone(); 
             cv::Mat result_frame;
 
-            std::cout << "process frame" << std::endl;
+            uint64_t start = getms();
+            LOG_DBG("process frame");
             
             yolo(frame, result_frame, hit);
 
             cv::Mat boxresult = result_frame.clone();
-            result_pipe_.push(boxresult);
+
+            //TODO
+            //result_pipe_.push(boxresult);
 
             if (hit)
             {
+                std::ostringstream names;
+                names << "alarm." << id_ << "-" << time(0) << ".jpg";
+
                 std::ostringstream os;
                 os << intruder_img_path_;
-                os << "alarm." << id_ << "-" << time(0) << ".jpg";
+                os << names.str();
                 std::string fname = os.str();
                 cv::imwrite(fname.c_str(), boxresult);
+
+                std::string img_name = names.str();
+
+                //notification
+                char pb[512];
+                getcwd(pb, 512);
+
+                std::ostringstream notify;
+                notify << pb << "/notify.sh " << fname << " " << img_name;
+                LOG_DBG(notify.str());
+                system(notify.str().c_str());
             }
 
-            //rudimentary power management
-            sleep(3);
+            uint64_t stop = getms();
+
+            LOG_DBG("object detection time: " << stop-start << " ms.")
+
             //remove from the pipe, make place for new
             frame_pipe_.pull(false); 
         }

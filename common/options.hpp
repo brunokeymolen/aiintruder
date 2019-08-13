@@ -23,12 +23,6 @@ namespace keymolen
             int Read(const char* path);
             void cleanup();
         public:
-            struct Pipes
-            {
-                Pipes();
-                std::vector<std::string> pipe_paths;
-            } pipes;
-
             struct FTPServer
             {
                 FTPServer();
@@ -43,6 +37,9 @@ namespace keymolen
                 const bool gui;
                 const bool yolo_tiny; 
                 const unsigned int process_interval_sec;
+
+                const unsigned int decoder_instances;
+                const unsigned int analyzer_instances;
             } aiintruder;
            
             struct Log
