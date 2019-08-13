@@ -67,11 +67,10 @@ yolo:
 clean:
 	rm -Rf *.o $(TARGET)
 	rm -f ftpserver/*.o
+	rm -f common/*.o
 
 make distclean:
-	rm -f /tmp/cam-0{0,1,2,3,4}.pipe
 	make clean
-	#cd ftpserver && $(MAKE) clean
 
 
 PREFIX ?= /usr
