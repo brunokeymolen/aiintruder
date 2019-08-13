@@ -3,14 +3,17 @@
 Artificial Intelligence backed Intruder detection for home security cameras.
 
 
-The goal of this project is 100% accuracy, never miss an intruder but avoid false positives in challenging environments and circumstances. 
+The goal of this project is near 100% accuracy, never miss an intruder but avoid false positives in challenging environments and circumstances. 
 
 Tested with Foscam FI9853EP outdoor IP camera's.
 
 - leverages camera build in movement detection algorithm to trigger the Neural Network analysis, this to reduce power consumption.
 - every suspicious movement is analyzed by a Neural Network which filters the false positives and only triggers when the objects of interest are actually seen (like a person, cat)
+  
+<img src="doc/alarm.img.1.jpg" width="400">
 
-
+  
+  
 BUILD
 - first, install opencv3
 
