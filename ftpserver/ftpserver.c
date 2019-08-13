@@ -120,8 +120,10 @@ void* communication(void* c) {
 	send_msg(client_socket, str);
 	handle_client_command(client);
   
+  //done, cleanup now
   //fix bruno
-  close(client_socket);
+  close(client->_client_socket);
+  free(client);
 
 	return NULL ;
 }
@@ -135,7 +137,10 @@ void handle_client_command(struct FtpClient* client) {
 	char *cmd = NULL;
 	char *argument = NULL;
 	while (TRUE) {
-		recv_msg(client_socket, &buffer, &cmd, &argument);
+		if(recv_msg(client_socket, &buffer, &cmd, &argument) <= 0)
+    {
+      return;
+    }
 		show_log(argument);
 		if (strcmp("USER", cmd) == 0) {
 			handle_USER(client, argument);
@@ -148,11 +153,19 @@ void handle_client_command(struct FtpClient* client) {
 		} else if (strcmp("PORT", cmd) == 0) {
 			handle_PORT(client, argument);
 		} else if (strcmp("RETR", cmd) == 0) {
-			struct FtpRetr* retr =(struct FtpRetr*)malloc(sizeof(struct FtpRetr));
+#if 1
+      char buf[100];
+			strcpy(buf, "500 ");
+			strcat(buf, cmd);
+			strcat(buf, "for security reasons, RETR is disabled at server\r\n");
+			send_msg(client->_client_socket, buf);
+#else
+				struct FtpRetr* retr =(struct FtpRetr*)malloc(sizeof(struct FtpRetr)); //??
 			retr->client = client;
 			strcpy(retr->path, argument);
-			pthread_t pid;
-			pthread_create(&pid, NULL, handle_RETR, (void*)retr);
+			//pthread_t pid;
+			//pthread_create(&pid, NULL, handle_RETR, (void*)retr); //why at another thread, we are at a session thread???
+#endif   
 		} else if (strcmp("PASV", cmd) == 0) {
 			handle_PASV(client);
 		} else if (strcmp("QUIT", cmd) == 0) {
@@ -201,14 +214,16 @@ void send_msg(int socket, const char* msg) {
 //receive message
 //cmd initial NULL
 //release memory out of the function
-void recv_msg(int socket, char** buf, char** cmd, char** argument) {
+int recv_msg(int socket, char** buf, char** cmd, char** argument) 
+{
 	memset(*buf, 0, sizeof(char) * BUFFER_SIZE);
 	int n = recv(socket, *buf, BUFFER_SIZE, 0);
-	if (n == 0) {
-
-		show_log("client leave the server.");
-		pthread_exit(NULL );
+	if (n <= 0) 
+  {
+    return n;
+    //pthread_exit(NULL );
 	}
+
 	int index = _find_first_of(*buf, ' ');
 	if (index < 0) {
 		*cmd = _substring(*buf, 0, strlen(*buf) - 2);
@@ -223,6 +238,8 @@ void recv_msg(int socket, char** buf, char** cmd, char** argument) {
 	} else {
 		show_log(*buf);
 	}
+
+  return n;
 }
 //show log
 void show_log(const char* log) {
@@ -558,7 +575,13 @@ void* handle_RETR(void* retr) {
 		send_msg(client->_client_socket,
 				"425 TCP connection cannot be established.\r\n");
 	}
-	pthread_exit(NULL);
+	  
+  {
+    std::cout << "establish_connection = 0, exit thread.... (@bruno, todo, at least close the socket but follow a better error path so all is cleaned up)" << std::endl;
+    close(client->_client_socket);
+  }
+
+pthread_exit(NULL);
 	return NULL;
 }
 
