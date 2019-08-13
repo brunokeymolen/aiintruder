@@ -122,7 +122,7 @@ void* communication(void* c) {
   
   //done, cleanup now
   //fix bruno
-  close(client->_client_socket);
+  free_ftp_client(client);
   free(client);
 
 	return NULL ;
@@ -484,6 +484,8 @@ void handle_LIST(struct FtpClient* client) {
 //
 void handle_PASV(struct FtpClient* client) {
 
+  std::cout << "PASV" << std::endl;
+
 	if (client->_data_socket > 0) {
 		close(client->_data_socket);
 		client->_data_socket = -1;
@@ -574,6 +576,7 @@ void* handle_RETR(void* retr) {
 	} else {
 		send_msg(client->_client_socket,
 				"425 TCP connection cannot be established.\r\n");
+		fclose(file);
 	}
 	  
   {
@@ -654,7 +657,7 @@ void handle_STOR(struct FtpClient* client, char* path) {
         printf("cancel, some error: j=%d\n", j);
         send_msg(client->_client_socket,
             "426 TCP connection was established but then broken\r\n");
-        return;
+        break;
       }
 
       if (_options->ftpserver.save)
@@ -669,18 +672,17 @@ void handle_STOR(struct FtpClient* client, char* path) {
       }
     }
     cancel_tcp_connection(client);
-    fclose(file);
 
     //tell analyzer we are done for now 
     _ftphook->close_analyzer_pipe(alarm_pipe);
-
-
 
     send_msg(client->_client_socket, "226 stor ok.\r\n");
   } else {
     send_msg(client->_client_socket,
         "425 TCP connection cannot be established.\r\n");
   }
+    
+  fclose(file);
 }
 
 //
