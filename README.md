@@ -35,7 +35,7 @@ notify.sh
 LICENSE<br>
 Please check the accompanied LICENSE file.<br><br>
   
-<img src="doc/alarm.img.i2.jpg" width="300">
+<img src="doc/alarm.img.2.jpg" width="300">
   
 
 2019-07-13 (C)Bruno Keymolen (bruno.keymolen@gmail.com)
