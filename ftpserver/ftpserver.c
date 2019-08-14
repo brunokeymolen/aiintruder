@@ -255,7 +255,8 @@ void show_log(const char* log) {
 	}
 }
 //
-int establish_tcp_connection(struct FtpClient* client) {
+int establish_tcp_connection(struct FtpClient* client) 
+{
 	if (client->_dataip[0]) {
 		client->_data_socket = socket(AF_INET, SOCK_STREAM, 0);
 		struct sockaddr_in servaddr;
@@ -282,6 +283,7 @@ int establish_tcp_connection(struct FtpClient* client) {
 
 		if (client->_data_socket < 0) {
 			perror("accept error");
+      return -1;
 			//exit(1);
 		} else {
 			socklen_t sock_length = sizeof(struct sockaddr);
@@ -603,14 +605,16 @@ int is_alarm(const char* path)
 
 
 //
-void handle_STOR(struct FtpClient* client, char* path) {
+void handle_STOR(struct FtpClient* client, char* path) 
+{
 
   //establish_tcp_connection(client);
   FILE* file = NULL;
   char _path[400];
   strcpy(_path, client->_root);
   strcat(_path, client->_cur_path);
-  if (_path[strlen(_path) - 1] != '/') {
+  if (_path[strlen(_path) - 1] != '/') 
+  {
     strcat(_path, "/");
   }
   strcat(_path, path);
@@ -622,12 +626,14 @@ void handle_STOR(struct FtpClient* client, char* path) {
   file = fopen(_path, "wb");
   show_log(_path);
 
-  if (file == NULL ) {
+  if (file == NULL ) 
+  {
     send_msg(client->_client_socket, "451 trouble to stor file\r\n");
     return;
   }
 
-  if (establish_tcp_connection(client) > 0) {
+  if (establish_tcp_connection(client) > 0) 
+  {
     send_msg(client->_client_socket,
         "150 Data connection accepted; transfer starting.\r\n");
     char buf[4096];
@@ -645,7 +651,8 @@ void handle_STOR(struct FtpClient* client, char* path) {
       }
     }
 
-    while (1) {
+    while (1) 
+    {
       j = recv(client->_data_socket, buf, 4096, 0);
       //printf("j: %d\n", j);
       if (j == 0) {
@@ -671,17 +678,19 @@ void handle_STOR(struct FtpClient* client, char* path) {
         _ftphook->write(alarm_pipe, buf, j); 
       }
     }
-    cancel_tcp_connection(client);
 
     //tell analyzer we are done for now 
     _ftphook->close_analyzer_pipe(alarm_pipe);
 
     send_msg(client->_client_socket, "226 stor ok.\r\n");
-  } else {
+  } 
+  else 
+  {
     send_msg(client->_client_socket,
         "425 TCP connection cannot be established.\r\n");
   }
-    
+
+  cancel_tcp_connection(client);
   fclose(file);
 }
 
