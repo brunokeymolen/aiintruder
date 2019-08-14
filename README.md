@@ -38,5 +38,8 @@ sudo mount 192.168.100.5:/mnt/sharedfolder /mnt/sharedfolder_client
   
 LICENSE<br>
 Please check the accompanied LICENSE file.<br><br>
+  
+<img src="doc/alarm.img.i2.jpg" width="300">
+  
 
 2019-07-13 (C)Bruno Keymolen (bruno.keymolen@gmail.com)
