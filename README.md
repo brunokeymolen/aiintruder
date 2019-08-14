@@ -17,25 +17,21 @@ Tested with Foscam FI9853EP outdoor IP camera's.
   
   
 BUILD
-- first, install opencv3
+- install opencv4
   
 
 make dependencies<br>
 make
   
-shell 1:<br>
-mkdir /tmp/ftp<br>
-sudo ./ftpserver/server 21 /tmp/ftp<br>
   
-shell 2:<br>
-./nnipcamera -v /tmp/cam-00.pipe<br>
+./aiintruder -c /conf/aiintruder.cfg<br>
   
+ 
   
-NFS Mounts
-sudo apt-get install nfs-common
-sudo mount 192.168.100.5:/mnt/sharedfolder /mnt/sharedfolder_client
-  
-  
+notify.sh  
+  sudo apt install ssmtp
+
+
 LICENSE<br>
 Please check the accompanied LICENSE file.<br><br>
   
