@@ -9,6 +9,7 @@
 #include "../common/common.hpp"
 #include "../common/options.hpp"
 #include "../common/ftphook.hpp"
+#include "../common/threadpool.hpp"
 
 
 //define FtpServer
