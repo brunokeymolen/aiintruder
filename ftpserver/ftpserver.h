@@ -6,6 +6,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
+#include "../common/common.hpp"
 #include "../common/options.hpp"
 #include "../common/ftphook.hpp"
 
@@ -28,8 +29,11 @@ struct FtpServer
 
 struct FtpClient
 {
+  //the requester
 	int 		_client_socket;
+  //second socket, transfer data, active or passive 
 	int  		_data_socket;
+
 	char 		_cur_path[200];
 	char 		_dataip[20];
 	int 		_dataport;
@@ -38,9 +42,13 @@ struct FtpClient
 	char		_ip[20];
 	char 		_name[20];
 	char 		_pass[20];
-	int 	 	_data_server_socket;
+
+  //Passive server listener socket (why not using this for data tansfer too?)
+  int 	 	_data_server_socket;
 
 	int 		status;
+
+  int client_port;
 };
 struct FtpRetr
 {

@@ -63,7 +63,10 @@ void start_ftp_server(struct FtpServer* ftp) {
 			perror("accept error");
 			//exit(1);
       continue;
-		} else {
+		} 
+    else 
+    {
+      LOG_DBG("accept socket on port " << ntohs(client_addr.sin_port));
 			socklen_t sock_length = sizeof(struct sockaddr);
 			char host_ip[100];
 			char client_ip[100];
@@ -74,16 +77,15 @@ void start_ftp_server(struct FtpServer* ftp) {
 			strcpy(ftp->_ip, host_ip);
 			//printf("%s", ftp->_ip);
 			getpeername(client, (struct sockaddr*) &client_addr, &sock_length);
-			inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip,
-					INET_ADDRSTRLEN);
+			inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
 			sprintf(log, "%s connect to the host.", client_ip);
 			show_log(log);
 
 		}
-		struct FtpClient* _c = (struct FtpClient*) malloc(
-				sizeof(struct FtpClient));
+		struct FtpClient* _c = (struct FtpClient*) malloc(sizeof(struct FtpClient));
 		init_ftp_client(_c, ftp, client);
-		pthread_t pid;
+    _c->client_port = ntohs(client_addr.sin_port);
+    pthread_t pid;
 		pthread_create(&pid, NULL, communication, (void*) (_c));
 		//close(client);
 	}
@@ -94,8 +96,8 @@ void set_ftp_server_port(struct FtpServer* ftp, int port) {
 }
 
 //initial FtpClient
-void init_ftp_client(struct FtpClient* client, struct FtpServer* server,
-		int client_socket) {
+void init_ftp_client(struct FtpClient* client, struct FtpServer* server, int client_socket) 
+{
 	client->_client_socket = client_socket;
 	strcpy(client->_ip, server->_ip);
 	strcpy(client->_root, server->_relative_path);
@@ -257,7 +259,13 @@ void show_log(const char* log) {
 //
 int establish_tcp_connection(struct FtpClient* client) 
 {
-	if (client->_dataip[0]) {
+	if (client->_dataip[0]) 
+  {
+    LOG_DBG("active, command port: " << client->client_port  << " data port: " <<client->_dataport);
+    //PORT / Active
+    //In active mode, the client starts listening for incoming data connections from the server on port M. 
+    //It sends the FTP command PORT M to inform the server on which port it is listening. 
+    //The server then initiates a data channel to the client from its port 20, the FTP server data port.
 		client->_data_socket = socket(AF_INET, SOCK_STREAM, 0);
 		struct sockaddr_in servaddr;
 		servaddr.sin_family = AF_INET;
@@ -275,17 +283,27 @@ int establish_tcp_connection(struct FtpClient* client)
 		}
 		show_log("port connect success.");
 
-	} else if (client->_data_server_socket > 0) {
+	} 
+  else if (client->_data_server_socket > 0) 
+  {
+    //Passive
+    //In situations where the client is behind a firewall and unable to accept incoming TCP connections, passive mode may be used.
+    //In this mode, the client uses the control connection to send a PASV command to the server and then receives a server 
+    //IP address and server port number from the server,[5] which the client then uses to open a data connection from an 
+    //arbitrary client port to the server IP address and server port number received.
 		socklen_t sock = sizeof(struct sockaddr);
 		struct sockaddr_in data_client;
-		client->_data_socket = accept(client->_data_server_socket,
-				(struct sockaddr*) &data_client, &sock);
+		client->_data_socket = accept(client->_data_server_socket, (struct sockaddr*) &data_client, &sock);
 
-		if (client->_data_socket < 0) {
+		if (client->_data_socket < 0) 
+    {
 			perror("accept error");
       return -1;
 			//exit(1);
-		} else {
+		} 
+    else 
+    {
+      LOG_DBG("passive, command port: " << client->client_port << " accepted socket from data client port " << ntohs(data_client.sin_port));
 			socklen_t sock_length = sizeof(struct sockaddr);
 			char client_ip[100];
 			char log[200];
@@ -425,7 +443,8 @@ void handle_CWD(struct FtpClient* client, char* _dir) {
 void handle_PORT(struct FtpClient* client, char* str) {
 	if (client->_data_socket > 0) {
 		close(client->_data_socket);
-	}
+	  client->_data_socket = 0;
+  }
 	client->_dataip[0] = 0;
 	int a, b, c, d, e, f;
 	sscanf(str, "%d,%d,%d,%d,%d,%d", &a, &b, &c, &d, &e, &f);
@@ -621,7 +640,7 @@ void handle_STOR(struct FtpClient* client, char* path)
 
 
   std::cout << "handle_STOR path: " << path << " client->_root: " << client->_root << " client->_cur_path: " << client->_cur_path << " _path: " << _path << std::endl;
-  printf("fopen: %s\n", _path);
+  LOG_DBG("fopen: " << _path);
 
   file = fopen(_path, "wb");
   show_log(_path);
@@ -655,12 +674,14 @@ void handle_STOR(struct FtpClient* client, char* path)
     {
       j = recv(client->_data_socket, buf, 4096, 0);
       //printf("j: %d\n", j);
-      if (j == 0) {
+      if (j == 0) 
+      {
         printf("cancel, we are done\n");
         cancel_tcp_connection(client);
         break;
       }
-      if (j < 0) {
+      if (j < 0) 
+      {
         printf("cancel, some error: j=%d\n", j);
         send_msg(client->_client_socket,
             "426 TCP connection was established but then broken\r\n");
@@ -681,7 +702,6 @@ void handle_STOR(struct FtpClient* client, char* path)
 
     //tell analyzer we are done for now 
     _ftphook->close_analyzer_pipe(alarm_pipe);
-
     send_msg(client->_client_socket, "226 stor ok.\r\n");
   } 
   else 
@@ -743,6 +763,7 @@ int check_user_pass(struct FtpClient* client) {
 void free_ftp_client(struct FtpClient* client) {
 	if (client->_client_socket > 0) {
 		close(client->_client_socket);
+    LOG_DBG("close client port: " << client->client_port);
 	}
 
 	if (client->_data_server_socket > 0)
