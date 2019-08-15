@@ -133,6 +133,7 @@ namespace keymolen
                 char pb[512];
                 getcwd(pb, 512);
 
+                //Move this to another thread since it stalls the frame analyzer for 2 seconds with my isp....
                 std::ostringstream notify;
                 notify << pb << "/notify.sh " << fname << " " << img_name;
                 LOG_DBG(notify.str());
