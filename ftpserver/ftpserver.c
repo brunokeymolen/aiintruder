@@ -52,7 +52,6 @@ void start_ftp_server(struct FtpServer* ftp) {
 
 
 //default watch over 20 sockets
-	char log[200];
 	listen(ftp->_socket, 20);
 	socklen_t size = sizeof(struct sockaddr);
 	while (1) {
@@ -66,7 +65,7 @@ void start_ftp_server(struct FtpServer* ftp) {
 		} 
     else 
     {
-      LOG_DBG("accept socket on port " << ntohs(client_addr.sin_port));
+      LOG_DBG("accepted socket on port " << ntohs(client_addr.sin_port));
 			socklen_t sock_length = sizeof(struct sockaddr);
 			char host_ip[100];
 			char client_ip[100];
@@ -78,15 +77,22 @@ void start_ftp_server(struct FtpServer* ftp) {
 			//printf("%s", ftp->_ip);
 			getpeername(client, (struct sockaddr*) &client_addr, &sock_length);
 			inet_ntop(AF_INET, &(client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
-			sprintf(log, "%s connect to the host.", client_ip);
-			show_log(log);
+			LOG_DBG("connect to the host. " << client_ip << "  port " << ntohs(client_addr.sin_port));
 
 		}
 		struct FtpClient* _c = (struct FtpClient*) malloc(sizeof(struct FtpClient));
+    if (_c == NULL)
+    {
+      LOG_ERR("unable to allocate FtpClient")
+    }
 		init_ftp_client(_c, ftp, client);
     _c->client_port = ntohs(client_addr.sin_port);
     pthread_t pid;
-		pthread_create(&pid, NULL, communication, (void*) (_c));
+		if( pthread_create(&pid, NULL, communication, (void*)(_c)) != 0)
+    {
+      LOG_ERR("count not create thread");
+      close(client);
+    };
 		//close(client);
 	}
 }
@@ -245,7 +251,7 @@ int recv_msg(int socket, char** buf, char** cmd, char** argument)
 }
 //show log
 void show_log(const char* log) {
-  
+  LOG_DBG("" << log); 
   return;
 
 	if (log) {
