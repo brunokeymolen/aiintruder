@@ -88,9 +88,10 @@ void start_ftp_server(struct FtpServer* ftp) {
 		init_ftp_client(_c, ftp, client);
     _c->client_port = ntohs(client_addr.sin_port);
     pthread_t pid;
-		if( pthread_create(&pid, NULL, communication, (void*)(_c)) != 0)
+    int ret = pthread_create(&pid, NULL, communication, (void*)(_c));
+		if(  ret != 0)
     {
-      LOG_ERR("count not create thread");
+      LOG_ERR("could not create thread " << ret);
       close(client);
     };
 		//close(client);
