@@ -94,6 +94,7 @@ namespace keymolen {
             entry.lookupValue("process_interval_sec", *(const_cast<unsigned int*>(&(aiintruder.process_interval_sec))));
             entry.lookupValue("decoder_instances", *(const_cast<unsigned int*>(&(aiintruder.decoder_instances))));
             entry.lookupValue("analyzer_instances", *(const_cast<unsigned int*>(&(aiintruder.analyzer_instances))));
+            entry.lookupValue("intruder_path", *(const_cast<std::string*>(&(aiintruder.intruder_path))));
        }
 
        return 0;

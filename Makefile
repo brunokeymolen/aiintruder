@@ -12,6 +12,7 @@ ENVIRONMENT=/tmp/cam-00.pipe
 SHELL=/bin/bash
 TARGET=aiintruder
 
+#opencv4-no-inference
 LIBRARIES=libconfig++ opencv libavformat libavcodec libswscale
 
 #opencv
@@ -22,11 +23,12 @@ SRC=ftpserver/ftpserver.o \
 		ftpserver/_string.o
 
 SRC+=	main.o \
+		common/threadpool.o \
+		common/options.o \
 		aiintruder.o \
 		frame_analyzer.o \
-		common/options.o \
-		vdecoder.o \
-		jdecoder.o
+		jdecoder.o \
+		vdecoder.o 
 	
 #all: ftpserver-static-lib vdecoder
 all: vdecoder $(ENVIRONMENT)

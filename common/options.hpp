@@ -40,6 +40,7 @@ namespace keymolen
 
                 const unsigned int decoder_instances;
                 const unsigned int analyzer_instances;
+                const std::string intruder_path;
             } aiintruder;
            
             struct Log

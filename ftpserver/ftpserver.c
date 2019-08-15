@@ -13,7 +13,7 @@
 
 keymolen::Options *_options = NULL;
 keymolen::FTPHook *_ftphook = NULL;
-
+keymolen::ThreadPool *_threadpool = NULL;
 
 
 
@@ -50,8 +50,9 @@ void start_ftp_server(struct FtpServer* ftp) {
     _options = ftp->_options;
     _ftphook = ftp->_hook;
 
+    _threadpool = new keymolen::ThreadPool(25);
 
-//default watch over 20 sockets
+  //default watch over 20 sockets
 	listen(ftp->_socket, 20);
 	socklen_t size = sizeof(struct sockaddr);
 	while (1) {
@@ -87,6 +88,7 @@ void start_ftp_server(struct FtpServer* ftp) {
     }
 		init_ftp_client(_c, ftp, client);
     _c->client_port = ntohs(client_addr.sin_port);
+#if 0
     pthread_t pid;
     int ret = pthread_create(&pid, NULL, communication, (void*)(_c));
 		if(  ret != 0)
@@ -94,6 +96,14 @@ void start_ftp_server(struct FtpServer* ftp) {
       LOG_ERR("could not create thread " << ret);
       close(client);
     };
+#else
+    if(!_threadpool->ecexute([=] (void* u1, void* u2) { communication(u1);}, (void*)(_c), NULL))
+    {
+      LOG_WARN("No threads available to handle request, close connection now");
+      close(client);
+    }
+#endif
+
 		//close(client);
 	}
 }

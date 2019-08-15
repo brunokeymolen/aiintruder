@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <fstream>
 
+#include "options.hpp"
 #include "frame_analyzer.hpp"
 
 namespace keymolen
@@ -19,7 +20,7 @@ namespace keymolen
         run_(false), tiny_(tiny), id_(id)
     {
         load_intruder_classes();
-        intruder_img_path_ = "/mnt/videosecurity/ftp/camera2/intruder-detection/";
+        intruder_img_path_ = Options::Instance()->aiintruder.intruder_path;
 
         if (tiny_)
         {
