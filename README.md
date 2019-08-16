@@ -13,28 +13,25 @@ Tested with Foscam FI9853EP outdoor IP camera's.
 - every suspicious movement is analyzed by a Neural Network (yolov3) which filters the false positives and only triggers when the objects of interest are actually seen (like a person, cat)
   
 
-#Dependencies
+### Dependencies
 - make dependencies
 
   
-#BUILD
+#### BUILD
 - install opencv4
 - make
  
 
-#Run  
+### Run  
 ./aiintruder -c /conf/aiintruder.cfg<br>
   
  
-#Email notifications  
+### Email notifications  
 see: notify.sh  
  - sudo apt install ssmtp
+  
 
-
-#LICENSE<br>
-Please check the accompanied LICENSE file.<br><br>
-
-#Raspberry PI 3B+
+### Raspberry PI 3B+
 Aiintruder is tested on on a raspberry PI 3B+
 
 | Algorithm   | Memory  | Decode JPEG |
@@ -42,9 +39,12 @@ Aiintruder is tested on on a raspberry PI 3B+
 |Yolo v3      | ~560 MB | ~12 Sec     | 
 |Yolo v3 tiny | ~160 MB | ~2 Sec      | 
 
-#Todo
+### Todo
 - integrate vdecoder an make it build-optional, like on Raspberry PI only Jpegs are used to save resources.  
+- notifications take about 2 seconds with my ISP, take this out of the frameanalyzer loop
 
-
-
+### LICENSE
+Please check the accompanied LICENSE file.<br><br>
+  
+    
 2019 (C)Bruno Keymolen (bruno.keymolen@gmail.com)
