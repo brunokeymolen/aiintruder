@@ -52,10 +52,10 @@ The time listed to decode is important, in the sense that all other images uploa
 Please check the accompanied LICENSE file.<br><br>
 
 ### Disclaimer
-This is a home project, since it was pretty usefull to me I thought it could be usefull for others so I open sourced the code .
+This is a home project, since it was pretty usefull to me I thought it could be usefull for others so I open sourced the code  but, this is briefly tested and work in progress, so no guarantees whatsoever.
 
 #### DISCLAIMER OF LIABILITY: 
-I DISCLAIMS LIABILITY FOR INCIDENTAL OR CONSEQUENTIAL DAMAGES and assumes no responsibility or liability for any loss or damage suffered by any person as a result of the use or misuse of any of the information or content on this website and or source source code and or anything related to this project. 
+I DISCLAIMS LIABILITY FOR INCIDENTAL OR CONSEQUENTIAL DAMAGES and assumes no responsibility or liability for any loss or damage suffered by any person as a result of the use or misuse of any of the information or content on this website and or the source source code and or anything related to this project. 
 
 
 2019 (C)Bruno Keymolen (bruno.keymolen@gmail.com)
