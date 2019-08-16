@@ -9,13 +9,15 @@ The goal of this project is near 100% accuracy, never miss an intruder but avoid
   
 Tested with Foscam FI9853EP outdoor IP camera's.
   
-- leverages camera build in movement detection algorithm to trigger the Neural Network analysis, this to reduce power consumption.
+- leverages camera build in movement detection algorithm to trigger the Neural Network analysis, this to reduce power consumption and CPU resources.
 - every suspicious movement is analyzed by a Neural Network (yolov3) which filters the false positives and only triggers when the objects of interest are actually seen (like a person, cat)
   
 
 ### Dependencies
 - make dependencies
-
+  
+(you need a number of others in order to build but its pretty trivial to figure this out)
+  
   
 #### BUILD
 - install opencv4
@@ -31,7 +33,7 @@ see: notify.sh
  - sudo apt install ssmtp
   
 
-### Raspberry PI 3B+
+### Raspberry PI
 Aiintruder is tested on on a raspberry PI 3B+
 
 | Algorithm   | Memory  | Decode JPEG |
