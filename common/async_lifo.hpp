@@ -87,6 +87,7 @@ namespace keymolen {
                             {
                               buffer_.pop_front();
                             }
+                            break;
                         }
                     }
                 }
