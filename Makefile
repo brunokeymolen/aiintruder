@@ -8,7 +8,6 @@ CXXFLAGS=-std=c++11 -Wall -I. -Icommon -I/usr/local/include $(OPTFLAGS)
 CFLAGS=-Wall $(OPTFLAGS)
 LDFLAGS= -L/usr/local/lib -lpthread $(OPTFLAGS) 
 FTPSERVER=ftpserver/server
-ENVIRONMENT=/tmp/cam-00.pipe
 SHELL=/bin/bash
 TARGET=aiintruder
 
@@ -31,7 +30,7 @@ SRC+=	main.o \
 		vdecoder.o 
 	
 #all: ftpserver-static-lib vdecoder
-all: vdecoder $(ENVIRONMENT)
+all: vdecoder 
 
 vdecoder: $(SRC) $(MODULES)
 	$(CXX) $(MODULES) $(SRC) $(LDFLAGS) -o $(TARGET)
@@ -51,9 +50,7 @@ vdecoder: $(SRC) $(MODULES)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-$(ENVIRONMENT):
-	#mkfifo /tmp/cam-0{0,1,2,3,4}.pipe
-
+	
 dependencies:
 	sudo apt install libconfig++-dev
 
