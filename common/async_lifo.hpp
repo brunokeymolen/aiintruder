@@ -14,6 +14,7 @@
 
 #include <mutex>
 #include <deque>
+#include <functional>
 #include <condition_variable>
 
 
@@ -22,7 +23,7 @@ namespace keymolen {
     template <typename T> class AsyncLifo 
     {
     public:
-        AsyncLifo(unsigned int max_elements) : max_elements_(max_elements)
+        AsyncLifo(unsigned int max_elements,  std::function<void (T& t)> drop_cb = nullptr) : max_elements_(max_elements), drop_cb_(drop_cb)
         {
 
         }
@@ -32,7 +33,11 @@ namespace keymolen {
             buffer_.push_front(t);
             while (buffer_.size() > max_elements_)
             {
-              LOG_DBG("dropped from lifo");
+              if (drop_cb_ != nullptr)
+              {
+                T& td = buffer_.front();
+                drop_cb_(td);
+              }
               buffer_.pop_back();
             }
             mutex_.unlock();
@@ -102,7 +107,7 @@ namespace keymolen {
         std::mutex mutex_;
         std::mutex notification_mutex_;
         unsigned int max_elements_;
-
+        std::function<void (T& t)> drop_cb_;
     };
 }
 
