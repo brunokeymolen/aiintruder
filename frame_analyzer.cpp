@@ -17,7 +17,7 @@ namespace keymolen
 {
 
     FrameAnalyzer::FrameAnalyzer(bool tiny, int id) :
-        run_(false), tiny_(tiny), id_(id)
+        frame_pipe_(9), run_(false), tiny_(tiny), id_(id)
     {
         load_intruder_classes();
         intruder_img_path_ = Options::Instance()->aiintruder.intruder_path;
@@ -53,7 +53,8 @@ namespace keymolen
 
     bool FrameAnalyzer::push_frame(cv::Mat& frame)
     {
-      return frame_pipe_.push(frame);
+      frame_pipe_.push(frame);
+      return true;
     }
     
     void FrameAnalyzer::load_intruder_classes()
@@ -104,7 +105,7 @@ namespace keymolen
         bool hit = false;
         while(run_)
         {
-            cv::Mat frame = frame_pipe_.peek(true).clone(); 
+            cv::Mat frame = frame_pipe_.pull(true).clone(); 
             cv::Mat result_frame;
 
             uint64_t start = getms();
@@ -144,9 +145,6 @@ namespace keymolen
             uint64_t stop = getms();
 
             LOG_DBG("object detection time: " << stop-start << " ms.")
-
-            //remove from the pipe, make place for new
-            frame_pipe_.pull(false); 
         }
     }
 
