@@ -17,7 +17,9 @@ namespace keymolen
 {
 
     FrameAnalyzer::FrameAnalyzer(bool tiny, int id) :
-        frame_pipe_(9), run_(false), tiny_(tiny), id_(id)
+            frame_pipe_(Options::Instance()->aiintruder.backlog_size_ram, std::bind(&FrameAnalyzer::dropped_frames, this, std::placeholders::_1)), 
+            run_(false), tiny_(tiny), id_(id),
+            dropped_frames_path_(Options::Instance()->aiintruder.dropped_frames_path)
     {
         load_intruder_classes();
         intruder_img_path_ = Options::Instance()->aiintruder.intruder_path;
@@ -288,7 +290,24 @@ namespace keymolen
         rectangle(frame, cv::Point(left, top - std::round(1.5*labelSize.height)), cv::Point(left + round(1.5*labelSize.width), top + baseLine), cv::Scalar(255, 255, 255), cv::FILLED);
         putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0,0,0),1);
     }
+    
 
+    void FrameAnalyzer::dropped_frames(cv::Mat& mat)
+    {
+        LOG_DBG("** dropped frame *** " << mat.rows << " x " << mat.cols );    
+        if (!dropped_frames_path_.empty())
+        {
+            std::ostringstream names;
+            names << "dropped-alarm." << id_ << "-" << time(0) << ".jpg";
+
+            std::ostringstream os;
+            os << dropped_frames_path_;
+            os << names.str();
+            std::string fname = os.str();
+            cv::imwrite(fname.c_str(), mat);
+        }
+
+ }
 
 
 } //ns

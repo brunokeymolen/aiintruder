@@ -54,6 +54,7 @@ namespace keymolen
         cv::String model_configuration_;
         cv::String model_weights_;
         int id_;
+        std::string dropped_frames_path_;
     private:
         void thread_loop();
         void yolo(cv::Mat& frame, cv::Mat& result, bool& hit);
@@ -62,6 +63,7 @@ namespace keymolen
         void get_output_names();
         void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, bool& hit);
         void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame);
+        void dropped_frames(cv::Mat& mat);
      };
 
 }
