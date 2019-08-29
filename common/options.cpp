@@ -25,6 +25,7 @@ namespace keymolen {
          gui(false),
          yolo_tiny(true),
          process_interval_sec(3),
+         backlog_size_ram(6),
          decoder_instances(2),
          analyzer_instances(1)
     {
@@ -92,6 +93,7 @@ namespace keymolen {
             entry.lookupValue("gui", *(const_cast<bool*>(&(aiintruder.gui))));
             entry.lookupValue("yolo_tiny", *(const_cast<bool*>(&(aiintruder.yolo_tiny))));
             entry.lookupValue("process_interval_sec", *(const_cast<unsigned int*>(&(aiintruder.process_interval_sec))));
+            entry.lookupValue("backlog_size_ram", *(const_cast<unsigned int*>(&(aiintruder.backlog_size_ram))));
             entry.lookupValue("decoder_instances", *(const_cast<unsigned int*>(&(aiintruder.decoder_instances))));
             entry.lookupValue("analyzer_instances", *(const_cast<unsigned int*>(&(aiintruder.analyzer_instances))));
             entry.lookupValue("intruder_path", *(const_cast<std::string*>(&(aiintruder.intruder_path))));

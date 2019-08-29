@@ -37,6 +37,7 @@ namespace keymolen
                 const bool gui;
                 const bool yolo_tiny; 
                 const unsigned int process_interval_sec;
+                const unsigned int backlog_size_ram;
 
                 const unsigned int decoder_instances;
                 const unsigned int analyzer_instances;
