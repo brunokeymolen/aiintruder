@@ -14,8 +14,8 @@
 #include <vector>
 
 #include "common.hpp"
-//#include "async_pipe.hpp"
 #include "async_lifo.hpp"
+#include "droppedframesqueue.hpp"
 
 #include <opencv2/dnn.hpp>
 #include <opencv2/highgui/highgui_c.h>
@@ -41,8 +41,8 @@ namespace keymolen
         const int inpWidth = 416;  // Width of network's input image
         const int inpHeight = 416; // Height of network's input image
     private:
-        //AsyncPipe<cv::Mat> frame_pipe_;
         AsyncLifo<cv::Mat> frame_pipe_;
+        DroppedFramesQueue dropped_frames_;
         std::thread thread_;
         bool run_;
         std::vector<std::string> classes_;

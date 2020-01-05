@@ -28,7 +28,8 @@ namespace keymolen {
          backlog_size_ram(6),
          decoder_instances(2),
          analyzer_instances(1),
-         dropped_frames_path("")
+         dropped_frames_path(""),
+         process_dropped_frames(false)
     {
     }
 
@@ -99,6 +100,7 @@ namespace keymolen {
             entry.lookupValue("analyzer_instances", *(const_cast<unsigned int*>(&(aiintruder.analyzer_instances))));
             entry.lookupValue("intruder_path", *(const_cast<std::string*>(&(aiintruder.intruder_path))));
             entry.lookupValue("dropped_frames_path", *(const_cast<std::string*>(&(aiintruder.dropped_frames_path))));
+            entry.lookupValue("process_dropped_frames", *(const_cast<bool*>(&(aiintruder.process_dropped_frames))));
        }
 
        return 0;

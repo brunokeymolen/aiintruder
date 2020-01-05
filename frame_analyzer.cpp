@@ -107,8 +107,23 @@ namespace keymolen
         bool hit = false;
         while(run_)
         {
-            cv::Mat frame = frame_pipe_.pull(true).clone(); 
+            cv::Mat frame;
             cv::Mat result_frame;
+
+            //if none in RAM, process the on dropped frames from disk
+            if ( frame_pipe_.empty() )
+            {
+              if (!dropped_frames_.empty())
+              {
+                frame = dropped_frames_.pull();
+              }
+            }
+           
+            if (frame.empty())
+            {
+              //wait for image
+              frame = frame_pipe_.pull(true).clone(); 
+            }
 
             uint64_t start = getms();
             LOG_DBG("process frame");
@@ -116,9 +131,6 @@ namespace keymolen
             yolo(frame, result_frame, hit);
 
             cv::Mat boxresult = result_frame.clone();
-
-            //TODO
-            //result_pipe_.push(boxresult);
 
             if (hit)
             {

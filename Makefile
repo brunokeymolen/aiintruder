@@ -27,8 +27,9 @@ SRC+=	main.o \
 		aiintruder.o \
 		frame_analyzer.o \
 		jdecoder.o \
-		vdecoder.o 
+		droppedframesqueue.o
 	
+		#vdecoder.o \
 #all: ftpserver-static-lib vdecoder
 all: vdecoder 
 

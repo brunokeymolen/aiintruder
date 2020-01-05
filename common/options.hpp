@@ -43,6 +43,7 @@ namespace keymolen
                 const unsigned int analyzer_instances;
                 const std::string intruder_path;
                 const std::string dropped_frames_path;
+                const bool process_dropped_frames;
             } aiintruder;
            
             struct Log
