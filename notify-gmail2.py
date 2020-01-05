@@ -1,3 +1,5 @@
+#based on: https://stackoverflow.com/questions/3362600/how-to-send-email-attachments 
+
 import smtplib
 from os.path import basename
 from email.mime.application import MIMEApplication
