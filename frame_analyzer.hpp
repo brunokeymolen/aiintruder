@@ -46,7 +46,6 @@ namespace keymolen
         std::thread thread_;
         bool run_;
         std::vector<std::string> classes_;
-        cv::dnn::Net net_;
         std::vector<cv::String> outlayer_names_;
         std::vector<std::string> intruder_classes_;
         std::string intruder_img_path_;
@@ -55,6 +54,7 @@ namespace keymolen
         cv::String model_weights_;
         int id_;
         std::string dropped_frames_path_;
+        cv::dnn::Net net_;
     private:
         void thread_loop();
         void yolo(cv::Mat& frame, cv::Mat& result, bool& hit);

@@ -13,17 +13,25 @@
 #include "options.hpp"
 #include "frame_analyzer.hpp"
 
+
+//#define MOVIDIUS
+
 namespace keymolen
 {
 
     FrameAnalyzer::FrameAnalyzer(bool tiny, int id) :
             frame_pipe_(Options::Instance()->aiintruder.backlog_size_ram, std::bind(&FrameAnalyzer::dropped_frames, this, std::placeholders::_1)), 
             run_(false), tiny_(tiny), id_(id),
-            dropped_frames_path_(Options::Instance()->aiintruder.dropped_frames_path)
+            dropped_frames_path_(Options::Instance()->aiintruder.dropped_frames_path),
+#ifdef MOVIDIUS
+	net_(cv::dnn::readNetFromModelOptimizer("frozen_darknet_yolov3_model.xml", "frozen_darknet_yolov3_model.bin"))
+#else
+	net_(cv::dnn::readNetFromDarknet((tiny?"yolov3-tiny.cfg":"yolov3.cfg"), (tiny?"yolov3-tiny.weights":"yolov3.weights")))
+#endif	    
     {
         load_intruder_classes();
         intruder_img_path_ = Options::Instance()->aiintruder.intruder_path;
-
+#if 0
         if (tiny_)
         {
           model_configuration_ = "yolov3-tiny.cfg";
@@ -34,6 +42,7 @@ namespace keymolen
           model_configuration_ = "yolov3.cfg";
           model_weights_ = "yolov3.weights";
         }
+#endif
     }
 
     FrameAnalyzer::~FrameAnalyzer()
@@ -44,7 +53,7 @@ namespace keymolen
     void FrameAnalyzer::start()
     {
         run_ = true;
-        load_nn();
+        //load_nn();
         thread_ = std::thread(&FrameAnalyzer::thread_loop, this);
     }
 
@@ -87,23 +96,29 @@ namespace keymolen
         }
         
         // Load the network
-        net_ = cv::dnn::readNetFromDarknet(model_configuration_, model_weights_);
-        
-#if 0
+//	cv::dnn::Net nn = cv::dnn::readNetFromDarknet(model_configuration_, model_weights_);
+#ifdef MOVIDIUS
         //VPU (like Intel Movidius Myriad X / Intel Neural Compute Stick 2)
         //https://www.learnopencv.com/using-openvino-with-opencv/
-        net_.setPreferableBackend(DNN_BACKEND_INFERENCE_ENGINE);
+        net_.setPreferableBackend(cv::dnn::DNN_BACKEND_INFERENCE_ENGINE);
 #else
         net_.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
 #endif
 
+#ifdef MOVIDIUS
+        net_.setPreferableTarget(cv::dnn::DNN_TARGET_MYRIAD);
+#else
         net_.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
-     
+#endif
+
+
         get_output_names();
     }
 
     void FrameAnalyzer::thread_loop()
     {
+        load_nn();
+
         bool hit = false;
         while(run_)
         {

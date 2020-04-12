@@ -12,7 +12,12 @@ SHELL=/bin/bash
 TARGET=aiintruder
 
 #opencv4-no-inference
-LIBRARIES=libconfig++ opencv libavformat libavcodec libswscale
+#LIBRARIES=libconfig++ opencv4-no-inference libavformat libavcodec libswscale
+
+
+#opencv-openvino
+LIBRARIES=libconfig++ opencv-openvino libavformat libavcodec libswscale
+
 
 #opencv
 CXXFLAGS+= `PKG_CONFIG_PATH=/opt/keymolen/lib/pkgconfig pkg-config $(LIBRARIES) --cflags`
